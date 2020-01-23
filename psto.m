@@ -10,7 +10,7 @@ clear% Clear all variables in memory
 gen = 1;% 0 to load, 1 to gen
 
 % Generate a population
-count = 500;% the population size
+count = 1000;% the population size
 fis = 'pop';% filename to save the population under
 fis = [char(datetime('now','Format','yyyyMMdd''-''HHmm')),'_',fis];% append date and time
 
@@ -26,9 +26,9 @@ maxRed = 0.1;% maximum percent reduction
 if gen == 1
     % Input Data
     % General parameters; Design space
-    nndx = 11; % Number of nodes in x
-    nndy = 11; % Number of nodes in y
-    scale = 0.5; % Scaling factor for element size
+    nndx = 7; % Number of nodes in x
+    nndy = 3; % Number of nodes in y
+    scale = 1; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
@@ -81,15 +81,15 @@ ctol = 1e-3;
 rollKeep = 3;
 
 % Craziness interval
-crazyIter = 15;
+crazyIter = 25;
 
 % Iteration limit
-iterLimit = 6500;
+iterLimit = 2000;
 
 % Velocity Update Tuning
-omega = -0.2089;
-pPhi = -0.0787;
-gPhi = 3.7637;
+omega = -0.2134;
+pPhi = -0.3344;
+gPhi = 2.3259;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
