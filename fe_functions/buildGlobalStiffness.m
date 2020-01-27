@@ -40,5 +40,8 @@ for i = 1:nel
     % Assemble the global stiffness matrix
     KK = placeKL(KK,kg,g,eldof);
 end
+
+% Convert to sparse for efficiency
+KK = sparse(KK);
 end
 

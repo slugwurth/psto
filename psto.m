@@ -7,23 +7,15 @@ clear% Clear all variables in memory
 %% Define Population 
 
 % Generate or Load a population
-gen = 1;% 0 to load, 1 to gen
-
-% Generate a population
-count = 1000;% the population size
-fis = 'pop';% filename to save the population under
-fis = [char(datetime('now','Format','yyyyMMdd''-''HHmm')),'_',fis];% append date and time
+gen = 0;% 0 to load, 1 to gen
 
 % Load a population
-fid = '20200113-1443_pop';% name of the saved .mat population
-
-% Process interpretation
-% Scan direction
-scanDir = [0 1];% [x y]
-scan = 1;% logical yes/no
-maxRed = 0.1;% maximum percent reduction
+fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
+    % Generate a population
+    count = 1000;% the population size
+    
     % Input Data
     % General parameters; Design space
     nndx = 7; % Number of nodes in x
@@ -44,13 +36,23 @@ if gen == 1
     % Scan direction
     scanDir = [0 1];% [x y]
     scan = 0;% logical yes/no
-    maxRed = 0.1;% maximum percent reduction    
+    maxRed = 0.1;% maximum percent reduction
+    
+    % File saving
+    fis = 'pop';% filename
+    fis = [char(datetime('now','Format','yyyyMMdd''-''HHmm')),'_',fis];% append date and time
 end
 
 if gen == 0
+    % Process interpretation
+    % Scan direction
+    scanDir = [0 1];% [x y]
+    scan = 0;% logical yes/no
+    maxRed = 0.1;% maximum percent reduction
+    
     % Load file
-   load(fid) 
-   count = p.count;
+    load(fid)
+    count = p.count;
    % Change filename
    fis = fid;
    % Check for scanning
