@@ -28,6 +28,7 @@ classdef population
                 p(ii) = particle(nndx,nndy,scale,E,A,I,scanDir,scan,maxRed,type,pload);
 				% Record particle initialization time
                 time(ii) = toc;
+                disp(['Initializing particle ' num2str(ii) ' of ' num2str(obj.count)]);
             end
 			% Record into population structure
             obj.popMember = p;

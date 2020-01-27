@@ -132,7 +132,7 @@ classdef particle
                     obj.scanDir = scanDir;
                     % Generate an element distribution from a random selection
                     % of design values for each unit cell
-                    [obj.elDist,obj.randVar,~,obj.nodalCoords] = dvarPlacement(obj.nndx,obj.nndy,obj.scale);
+                    [obj.elDist,obj.randVar,~,obj.nodalCoords] = dvarPlacement(obj.nndx,obj.nndy,obj.scale,obj.type);
                     % Assign the random dVar distribution to the property
                     % that will be changed during optimization
                     obj.dVar = obj.randVar;
@@ -221,7 +221,7 @@ classdef particle
         % Generate a random distribution of design variables
         function obj = randomPosition(obj)
             % Call the design variable placement function
-            [obj.elDistProposed,obj.randVar,~,obj.nodalCoordsProposed] = dvarPlacement(obj.nndx,obj.nndy,obj.scale);
+            [obj.elDistProposed,obj.randVar,~,obj.nodalCoordsProposed] = dvarPlacement(obj.nndx,obj.nndy,obj.scale,obj.type);
             % Set the valid config flags
             obj.validConnec = 1; obj.validIsland = 1;
             % Write the random variables to the propsed position
@@ -264,14 +264,19 @@ classdef particle
                     % Exit the function
                     return
                 end
-            
-            % Check for BC connectivity and flag (connectivity condition)
+                
+                % Check for BC connectivity and flag (connectivity condition)
                 % Represent connectivity as a network object
                 obj.graphRep = graph(elDistNew(:,2),elDistNew(:,3));
-
-                % Create node variables to check for connectivity (MBB loading)
-                n1 = 1; n2 = obj.nndx; n3 = obj.nndx *(obj.nndy-1) + 1;
-
+                
+                % Create node variables to check for connectivity
+                if obj.type == 1% (MBB loading)
+                    n1 = 1; n2 = obj.nndx; n3 = obj.nndx *(obj.nndy-1) + 1;
+                else
+                    if obj.type == 2% (cantilever midplane tip loading)
+                        n1 = 1; n2 = obj.nndx * ((obj.nndy-1)/2 + 1); n3 = obj.nndx *(obj.nndy-1) + 1;
+                    end
+                end
                 % Put network components into bins
                 [gbins,gbinsizes] = conncomp(obj.graphRep);
 
@@ -366,7 +371,7 @@ classdef particle
                strainEnergy = (1 - obj.gsStrainEnergy/(obj.delta'*obj.KK*obj.delta));
                volumeFraction = obj.nel/(size(obj.elPot,1)*6);
                
-               a = 2; b = 8; c = 8; d = 2;
+               a = 5; b = 5; c = 5; d = 5;
                
                % Penalize a density above a threshold
                if volumeFraction > 0.4

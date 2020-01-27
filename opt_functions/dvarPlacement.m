@@ -1,15 +1,17 @@
-function [elDist,randVar,g,nodalCoords] = dvarPlacement(nndx,nndy,scale)
+function [elDist,randVar,g,nodalCoords] = dvarPlacement(nndx,nndy,scale,type)
 %% Viable Random Element Distribution
 %
 % Matt Ireland 2019
 %
 % Accepts
 %   a grid size in nodal dimensions
+%   the unit cell scaling factor
+%   the BC type
 % Returns
 %   -a global arrangement of node connections according to a random
 %   selection of design variable values
 %       that:       are fully connected (no islands)
-%                   reach and connect MBB BC nodes
+%                   reach and connect BC nodes
 %   -the corresponding random design variable values
 %   -a graph/network representation of the elements
 %   nodal numbers and positions for the connections
@@ -29,8 +31,8 @@ elDist = [];% unknown-by-three: [Nel node1 node2]
 
 %% Find viable combinations
 % Build a random distribution of elements according to a random selection
-% of design value for each unit cell, then make sure the BC nodes for MBB
-% loading are connected before proceeding
+% of design value for each unit cell, then make sure the BC nodes
+% are connected before proceeding
 
 
 % Iterative search for viable combinations
@@ -61,8 +63,14 @@ while viable == 0
         
     % Represent connectivity as a network object
     g = graph(elDist(:,2),elDist(:,3));
-    % Create node variables to check for connectivity (MBB loading)
-    n1 = 1; n2 = nndx; n3 = nndx *(nndy-1) + 1;
+    % Create node variables to check for connectivity
+    if type == 1% (MBB loading)
+        n1 = 1; n2 = nndx; n3 = nndx *(nndy-1) + 1;
+    else
+        if type == 2% (cantilever midplane tip loading)
+            n1 = 1; n2 = nndx * ((nndy-1)/2 + 1); n3 = nndx *(nndy-1) + 1;
+        end
+    end
     % Put network components into bins
     [gbins,gbinsizes] = conncomp(g);
     % Build logical array of invalid components

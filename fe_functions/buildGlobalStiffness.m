@@ -42,6 +42,8 @@ for i = 1:nel
 end
 
 % Convert to sparse for efficiency
-KK = sparse(KK);
+if nnz(KK)/numel(KK) < 0.5
+    KK = sparse(KK);
+end
 end
 

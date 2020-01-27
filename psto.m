@@ -7,7 +7,7 @@ clear% Clear all variables in memory
 %% Define Population 
 
 % Generate or Load a population
-gen = 0;% 0 to load, 1 to gen
+gen = 1;% 0 to load, 1 to gen
 
 % Load a population
 fid = '20200124-1510_pop';% name of the saved .mat population
@@ -18,13 +18,15 @@ if gen == 1
     
     % Input Data
     % General parameters; Design space
-    nndx = 7; % Number of nodes in x
-    nndy = 3; % Number of nodes in y
-    scale = 1; % Scaling factor for element size
+    nndx = 15; % Number of nodes in x
+    nndy = 7; % Number of nodes in y
+    scale = 0.5; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
-    type = 1;% 1 for MBB
+    type = 2;   % 1 for MBB
+                % 2 for Cantilever midplane tip-load
+    
     % Set point load
     pload = 1000;% unitless
     
@@ -80,7 +82,7 @@ end
 ctol = 1e-3;
 
 % Number of iterations to keep for convergence calc
-rollKeep = 3;
+rollKeep = 9;
 
 % Craziness interval
 crazyIter = 25;
@@ -89,7 +91,7 @@ crazyIter = 25;
 iterLimit = 2000;
 
 % Velocity Update Tuning
-omega = -0.2134;
+omega = 0.2134;
 pPhi = -0.3344;
 gPhi = 2.3259;
 
