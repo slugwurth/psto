@@ -14,13 +14,13 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 1000;% the population size
+    count = 3000;% the population size
     
     % Input Data
     % General parameters; Design space
-    nndx = 7; % Number of nodes in x
-    nndy = 3; % Number of nodes in y
-    scale = 1; % Scaling factor for element size
+    nndx = 15; % Number of nodes in x
+    nndy = 7; % Number of nodes in y
+    scale = 0.5; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
@@ -82,21 +82,21 @@ end
 ctol = 1e-3;
 
 % Number of iterations to keep for convergence calc
-rollKeep = 9;
+rollKeep = 11;
 
 % Craziness interval
-crazyIter = 25;
+crazyIter = 50;
 
 % Iteration limit
-iterLimit = 2000;
+iterLimit = 10000;
 
 % Velocity maximum
-vmax = 70;
+vmax = 20;
 
 % Velocity Update Tuning
 omega = 0.4;
 pPhi = -0.3;
-gPhi = 0.9;
+gPhi = 0.5;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
@@ -105,7 +105,7 @@ pRender = 1;% set to zero for none
 % Initialize structures for animations
 fitMOV(iterLimit) = struct('cdata',[],'colormap',[]);
 parMOV(iterLimit) = struct('cdata',[],'colormap',[]);
-velMOV(iterLimit) = struct('cdata',[],'colormap',[]);
+posMOV(iterLimit) = struct('cdata',[],'colormap',[]);
 vebMOV(iterLimit) = struct('cdata',[],'colormap',[]);
 
 % Change figure background color to white
@@ -384,7 +384,7 @@ while iter <= iterLimit
         % Write into movie structure
         fitMOV(iter) = getframe(fig2);
         parMOV(iter) = getframe(fig1);
-        velMOV(iter) = getframe(fig4);
+        posMOV(iter) = getframe(fig4);
         vebMOV(iter) = getframe(fig5);
     end
     
@@ -426,23 +426,23 @@ save([fis,'_solution'],'-v7.3','p','popFitHist','iter','omega','pPhi','gPhi');
 % Write movis to gif
 fitGifName = [fis '_fitnessAnimated.gif']; % Specify the output file name
 parGifName = [fis '_bestParAnimated.gif'];
-velGifName = [fis '_velocityAnimated.gif'];
+posGifName = [fis '_populationPositionAnimated.gif'];
 vebGifName = [fis '_velocityBestParticleAnimated.gif'];
 for idx = 1:(iter-1)
     disp(['Saving GIFs Frame ' num2str(idx)]);
     [aFIT,mapFIT] = rgb2ind(fitMOV(idx).cdata,256);
     [aPAR,mapPAR] = rgb2ind(parMOV(idx).cdata,256);
-    [aVEL,mapVEL] = rgb2ind(velMOV(idx).cdata,256);
+    [aPOS,mapPOS] = rgb2ind(posMOV(idx).cdata,256);
     [aVEB,mapVEB] = rgb2ind(vebMOV(idx).cdata,256);
     if idx == 1
         imwrite(aFIT,mapFIT,fitGifName,'gif','LoopCount',Inf,'DelayTime',1);
         imwrite(aPAR,mapPAR,parGifName,'gif','LoopCount',Inf,'DelayTime',1);
-        imwrite(aVEL,mapVEL,velGifName,'gif','LoopCount',Inf,'DelayTime',1);
+        imwrite(aPOS,mapPOS,posGifName,'gif','LoopCount',Inf,'DelayTime',1);
         imwrite(aVEB,mapVEB,vebGifName,'gif','LoopCount',Inf,'DelayTime',1);
     else
         imwrite(aFIT,mapFIT,fitGifName,'gif','WriteMode','append','DelayTime',0.2);
         imwrite(aPAR,mapPAR,parGifName,'gif','WriteMode','append','DelayTime',0.2);
-        imwrite(aVEL,mapVEL,velGifName,'gif','WriteMode','append','DelayTime',0.2);
+        imwrite(aPOS,mapPOS,posGifName,'gif','WriteMode','append','DelayTime',0.2);
         imwrite(aVEB,mapVEB,vebGifName,'gif','WriteMode','append','DelayTime',0.2);
     end
 end
