@@ -18,9 +18,9 @@ if gen == 1
     
     % Input Data
     % General parameters; Design space
-    nndx = 15; % Number of nodes in x
-    nndy = 7; % Number of nodes in y
-    scale = 0.5; % Scaling factor for element size
+    nndx = 7; % Number of nodes in x
+    nndy = 3; % Number of nodes in y
+    scale = 1; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
@@ -90,10 +90,13 @@ crazyIter = 25;
 % Iteration limit
 iterLimit = 2000;
 
+% Velocity maximum
+vmax = 70;
+
 % Velocity Update Tuning
-omega = 0.2134;
-pPhi = -0.3344;
-gPhi = 2.3259;
+omega = 0.4;
+pPhi = -0.3;
+gPhi = 0.9;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
@@ -165,6 +168,8 @@ iter = 1;
 popFitChange = 1;
 % Initialize a scattering count
 nScatter = 0;
+% Initialize a position plotting array
+popPos = ones(size(p.popMember(1).dVar,1),count);
 
 %% Iteration
 
@@ -223,6 +228,8 @@ while iter <= iterLimit
                 p.popMember(ii).fitnessValComponents = ...
                     [p.popMember(ii).fitnessValComponents; p.popMember(ii).fitnessValComponents(end,:)];
             end
+            % Data structure for population position plotting
+            popPos(:,ii) = p.popMember(ii).dVar(:,2);
         end
         
         % Update pBest and gBest
@@ -259,11 +266,11 @@ while iter <= iterLimit
                 pPhi.*rp.*(p.popMember(ii).pBestPos(:,2) - p.popMember(ii).dVar(:,2)) + ...
                 gPhi.*rg.*(p.popMember(ii).gBestPos(:,2) - p.popMember(ii).dVar(:,2));
             % Bound velocity
-            if p.popMember(ii).vel(p.popMember(ii).vel > 139)
-                p.popMember(ii).vel(p.popMember(ii).vel > 139) = 139;
+            if p.popMember(ii).vel(p.popMember(ii).vel > vmax)
+                p.popMember(ii).vel(p.popMember(ii).vel > vmax) = vmax;
             else
-                if p.popMember(ii).vel(p.popMember(ii).vel < -139)
-                    p.popMember(ii).vel(p.popMember(ii).vel < -139) = -139;
+                if p.popMember(ii).vel(p.popMember(ii).vel < -vmax)
+                    p.popMember(ii).vel(p.popMember(ii).vel < -vmax) = -vmax;
                 end
             end
             % Move particle to proposed position
@@ -297,6 +304,8 @@ while iter <= iterLimit
                 p.popMember(ii).fitnessValComponents = ...
                     [p.popMember(ii).fitnessValComponents; p.popMember(ii).fitnessValComponents(end,:)];
             end
+            % Data structure for population position plotting
+            popPos(:,ii) = p.popMember(ii).dVar(:,2); 
         end
     end
     
@@ -348,14 +357,20 @@ while iter <= iterLimit
         legend('Global Best','Current Best','Current Mean');
         drawnow limitrate
         
-        % Show the velocity term for the first particle
+        % Show the positions of the population
         fig4 = figure(4);
         cla
         hold on
-        bar(1:1:size(p.popMember(1).vel,1),p.popMember(1).vel);
-        ylim([-139 139]); xlim([1 size(p.popMember(1).vel,1)]);
-        title(['Particle 1 Velocity, Iteration ' num2str(iter)]);
-        drawnow limitrate
+        [~,nn] = meshgrid(1:1:size(p.popMember(1).dVar,1),1:1:count);
+        nn = reshape(nn,[],1); popPos = reshape(popPos,[],1);
+        if mod(iter,crazyIter) == 0
+            scatter(nn,popPos,'r.');
+        else
+            scatter(nn,popPos,'k.');
+        end
+        ylim([1 140]); xlim([0 size(p.popMember(1).vel,1)]);
+        title(['Population Positions, Iteration ' num2str(iter)]);
+        drawnow limitrate; clear popPos;
         
         % Show the velocity term for the first particle
         fig5 = figure(5);
