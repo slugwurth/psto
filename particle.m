@@ -379,12 +379,19 @@ classdef particle
                vcons = 0.75;
                
                % Penalize a density above a threshold
+%                if volumeFraction > vcons
+%                    obj.fitnessVal = a*strainEnergy + b*volumeFraction;
+%                else
+%                    obj.fitnessVal = c*strainEnergy + d*volumeFraction;
+%                end
+
+               % Strain energy term only, by volume fraction
                if volumeFraction > vcons
-                   obj.fitnessVal = a*strainEnergy + b*volumeFraction;
+                   obj.fitnessVal = 10*strainEnergy;
                else
-                   obj.fitnessVal = c*strainEnergy + d*volumeFraction;
+                   obj.fitnessVal = strainEnergy;
                end
-               
+
                % Append to a history matrix
                obj.fitnessValComponents = [obj.fitnessValComponents; ...
                    obj.fitnessVal strainEnergy volumeFraction vcons a b c d];
