@@ -14,7 +14,7 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 3000;% the population size
+    count = 60;% the population size
     
     % Input Data
     % General parameters; Design space
@@ -361,8 +361,8 @@ while iter <= iterLimit
         fig4 = figure(4);
         cla
         hold on
-        [~,nn] = meshgrid(1:1:size(p.popMember(1).dVar,1),1:1:count);
-        nn = reshape(nn,[],1); popPos = reshape(popPos,[],1);
+        [nn,~] = meshgrid(1:1:size(p.popMember(1).dVar,1),1:1:count);
+        nn = reshape(nn',[],1); popPos = reshape(popPos,[],1);
         if mod(iter,crazyIter) == 0
             scatter(nn,popPos,'r.');
         else
