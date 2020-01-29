@@ -18,13 +18,13 @@ if gen == 1
     
     % Input Data
     % General parameters; Design space
-    nndx = 15; % Number of nodes in x
-    nndy = 7; % Number of nodes in y
-    scale = 0.5; % Scaling factor for element size
+    nndx = 3; % Number of nodes in x
+    nndy = 2; % Number of nodes in y
+    scale = 5; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
-    type = 2;   % 1 for MBB
+    type = 1;   % 1 for MBB
                 % 2 for Cantilever midplane tip-load
     
     % Set point load
@@ -82,7 +82,7 @@ end
 ctol = 1e-3;
 
 % Number of iterations to keep for convergence calc
-rollKeep = 11;
+rollKeep = 7;
 
 % Craziness interval
 crazyIter = 50;
@@ -94,9 +94,9 @@ iterLimit = 10000;
 vmax = 20;
 
 % Velocity Update Tuning
-omega = 0.4;
-pPhi = -0.3;
-gPhi = 0.5;
+omega = 0.3925;
+pPhi = 2.5586;
+gPhi = 1.3358;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
@@ -143,9 +143,9 @@ worstPar = find([p.popMember.fitnessVal] == max([p.popMember.fitnessVal]));
 % Set gBest of population
 for ii = 1:count
     % Set gBestFit
-    p.popMember(ii).gBestFit = p.popMember(bestPar).fitnessVal;
+    p.popMember(ii).gBestFit = p.popMember(bestPar(1)).fitnessVal;
     % Set gBestPos
-    p.popMember(ii).gBestPos = p.popMember(bestPar).dVar;
+    p.popMember(ii).gBestPos = p.popMember(bestPar(1)).dVar;
 end
 
 % Initialize velocities
@@ -160,7 +160,7 @@ popFitRolling = ones(rollKeep,1);
 % Find population fitness mean
 popFitMean = mean([p.popMember.fitnessVal]);
 % Append population fitness to history vector
-popFitHist(1,:) = [p.popMember(bestPar).fitnessVal p.popMember(bestPar).fitnessVal...
+popFitHist(1,:) = [p.popMember(bestPar(1)).fitnessVal p.popMember(bestPar(1)).fitnessVal...
     popFitMean p.popMember(worstPar).fitnessVal];
 % Initialize iteration counter
 iter = 1;
