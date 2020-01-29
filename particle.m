@@ -371,17 +371,23 @@ classdef particle
                strainEnergy = (1 - obj.gsStrainEnergy/(obj.delta'*obj.KK*obj.delta));
                volumeFraction = obj.nel/(size(obj.elPot,1)*6);
                
-               a = 5; b = 5; c = 5; d = 5;
+               % Weights for the fitness/objective funciton
+               a = 5; b = 5; 
+               c = 5; d = 5;
+               
+               % Volume fraction constraint
+               vcons = 0.75;
                
                % Penalize a density above a threshold
-               if volumeFraction > 0.4
+               if volumeFraction > vcons
                    obj.fitnessVal = a*strainEnergy + b*volumeFraction;
                else
                    obj.fitnessVal = c*strainEnergy + d*volumeFraction;
                end
                
                % Append to a history matrix
-               obj.fitnessValComponents = [obj.fitnessValComponents; obj.fitnessVal strainEnergy volumeFraction];
+               obj.fitnessValComponents = [obj.fitnessValComponents; ...
+                   obj.fitnessVal strainEnergy volumeFraction vcons a b c d];
         end
         
         % Memorize current positional state
