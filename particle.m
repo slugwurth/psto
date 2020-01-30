@@ -107,7 +107,7 @@ classdef particle
                     % Generate the element potential matrix property
                     obj.elPot = elementPotential(nndx,nndy);
                     % Generate the particle velocity potential array
-                    obj.velPot = -139:1:139;
+                    obj.velPot = -55:1:55;
                 
                 % Frame Element Definition
                     % This section provides element definitions that control data
@@ -202,7 +202,7 @@ classdef particle
             % Initialize the ground structure value matrix
             groundVar = ones(ncell,1);% [n var]
 %             groundVar(:,1) = 1:1:ncell;% unit cell numbering
-            groundVar(:,1) = groundVar(:,1).*140;% set to fully dense
+            groundVar(:,1) = groundVar(:,1).*56;% set to fully dense
             % Build dependent properties
             obj = changeVar(obj,groundVar);
             obj.dVar = obj.dVarProposed;
@@ -376,18 +376,25 @@ classdef particle
                c = 5; d = 5;
                
                % Volume fraction constraint
-               vcons = 0.75;
+               vcons = 0.50;
                
-               % Penalize a density above a threshold
-               if volumeFraction > vcons
-                   obj.fitnessVal = a*strainEnergy + b*volumeFraction;
-               else
-                   obj.fitnessVal = c*strainEnergy + d*volumeFraction;
-               end
+%                % Penalize a density above a threshold
+%                if volumeFraction > vcons
+%                    obj.fitnessVal = a*strainEnergy + b*volumeFraction;
+%                else
+%                    obj.fitnessVal = c*strainEnergy + d*volumeFraction;
+%                end
                
-               % Append to a history matrix
+%                % Append to a history matrix
+%                obj.fitnessValComponents = [obj.fitnessValComponents; ...
+%                    obj.fitnessVal strainEnergy volumeFraction vcons a b c d];
+
+               % Volume Fraction Penalization
+               penalty = (exp(volumeFraction-vcons)-1) + (exp(vcons-volumeFraction)-1);
+               obj.fitnessVal = strainEnergy + penalty;
+%              % Append to a history matrix
                obj.fitnessValComponents = [obj.fitnessValComponents; ...
-                   obj.fitnessVal strainEnergy volumeFraction vcons a b c d];
+                   obj.fitnessVal strainEnergy penalty vcons a b c d];
         end
         
         % Memorize current positional state

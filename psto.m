@@ -4,7 +4,7 @@ clear% Clear all variables in memory
 % Particle Swarm Topology Optimization
 %         Matt Ireland 2019
 
-%% Define Population 
+%% Define Population
 
 % Generate or Load a population
 gen = 1;% 0 to load, 1 to gen
@@ -14,18 +14,18 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 60;% the population size
+    count = 1000;% the population size
     
     % Input Data
     % General parameters; Design space
-    nndx = 3; % Number of nodes in x
-    nndy = 2; % Number of nodes in y
-    scale = 5; % Scaling factor for element size
+    nndx = 13; % Number of nodes in x
+    nndy = 5; % Number of nodes in y
+    scale = 0.5; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
-    type = 1;   % 1 for MBB
-                % 2 for Cantilever midplane tip-load
+    type = 2;   % 1 for MBB
+    % 2 for Cantilever midplane tip-load
     
     % Set point load
     pload = 1000;% unitless
@@ -55,25 +55,25 @@ if gen == 0
     % Load file
     load(fid)
     count = p.count;
-   % Change filename
-   fis = fid;
-   % Check for scanning
-   if (scan)
-       % Append suffix to filename
-       if scanDir(1) == 1
-           fis = [fis '_scanX']; 
-       else
-           if scanDir(2) == 1
-           fis = [fis '_scanY']; 
-           end
-       end
-       % Apply process interpreter flag and direction
-       for ii = 1:count
-           p.popMember(ii).scan = 1;
-           p.popMember(ii).scanDir = scanDir;
-           p.popMember(ii).maxRed = maxRed;
-       end
-   end
+    % Change filename
+    fis = fid;
+    % Check for scanning
+    if (scan)
+        % Append suffix to filename
+        if scanDir(1) == 1
+            fis = [fis '_scanX'];
+        else
+            if scanDir(2) == 1
+                fis = [fis '_scanY'];
+            end
+        end
+        % Apply process interpreter flag and direction
+        for ii = 1:count
+            p.popMember(ii).scan = 1;
+            p.popMember(ii).scanDir = scanDir;
+            p.popMember(ii).maxRed = maxRed;
+        end
+    end
 end
 
 %% Optimization Parameters
@@ -85,13 +85,13 @@ ctol = 1e-3;
 rollKeep = 7;
 
 % Craziness interval
-crazyIter = 50;
+crazyIter = 25;
 
 % Iteration limit
 iterLimit = 10000;
 
 % Velocity maximum
-vmax = 20;
+vmax = 5;
 
 % Velocity Update Tuning
 omega = 0.3925;
@@ -265,6 +265,8 @@ while iter <= iterLimit
             p.popMember(ii).vel = omega.*p.popMember(ii).vel + ...
                 pPhi.*rp.*(p.popMember(ii).pBestPos(:,2) - p.popMember(ii).dVar(:,2)) + ...
                 gPhi.*rg.*(p.popMember(ii).gBestPos(:,2) - p.popMember(ii).dVar(:,2));
+            % Round to nearest integer
+            p.popMember(ii).vel = round(p.popMember(ii).vel);
             % Bound velocity
             if p.popMember(ii).vel(p.popMember(ii).vel > vmax)
                 p.popMember(ii).vel(p.popMember(ii).vel > vmax) = vmax;
@@ -276,8 +278,8 @@ while iter <= iterLimit
             % Move particle to proposed position
             p.popMember(ii).dVarProposed = p.popMember(ii).dVar(:,2) +  p.popMember(ii).vel;
             % Bound position
-            if any(p.popMember(ii).dVarProposed > 140)
-                p.popMember(ii).dVarProposed(p.popMember(ii).dVarProposed > 140,1) = 140;
+            if any(p.popMember(ii).dVarProposed > 56)
+                p.popMember(ii).dVarProposed(p.popMember(ii).dVarProposed > 56,1) = 56;
             end
             
             if any(p.popMember(ii).dVarProposed < 1)
@@ -305,7 +307,7 @@ while iter <= iterLimit
                     [p.popMember(ii).fitnessValComponents; p.popMember(ii).fitnessValComponents(end,:)];
             end
             % Data structure for population position plotting
-            popPos(:,ii) = p.popMember(ii).dVar(:,2); 
+            popPos(:,ii) = p.popMember(ii).dVar(:,2);
         end
     end
     
@@ -352,7 +354,7 @@ while iter <= iterLimit
         fig2 = figure(2);
         cla
         plot(1:1:iter,popFitHist(1:iter,1),1:1:iter,popFitHist(1:iter,2),1:1:iter,popFitHist(1:iter,3));
-        ylim([0 10]);
+        ylim([0 3]);
         title(['Population Fitness, Iteration ' num2str(iter)]);
         legend('Global Best','Current Best','Current Mean');
         drawnow limitrate
@@ -368,7 +370,7 @@ while iter <= iterLimit
         else
             scatter(nn,popPos,'k.');
         end
-        ylim([1 140]); xlim([0 size(p.popMember(1).vel,1)]);
+        ylim([1 56]); xlim([0 size(p.popMember(1).vel,1)]);
         title(['Population Positions, Iteration ' num2str(iter)]);
         drawnow limitrate; clear popPos;
         
@@ -377,7 +379,7 @@ while iter <= iterLimit
         cla
         hold on
         bar(1:1:size(p.popMember(bestPar(1)).vel,1),p.popMember(bestPar(1)).vel);
-        ylim([-139 139]); xlim([1 size(p.popMember(bestPar(1)).vel,1)]);
+        ylim([-56 56]); xlim([1 size(p.popMember(bestPar(1)).vel,1)]);
         title(['Particle ' num2str(bestPar(1)) ' Velocity, Iteration ' num2str(iter)]);
         drawnow limitrate
         

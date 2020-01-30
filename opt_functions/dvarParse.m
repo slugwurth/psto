@@ -15,23 +15,23 @@ function [dVar] = dvarParse(elPot,dvarDim)
 %                   
 
 %% Assign Connectivity
-% Values between 1 and 140 correspond to different numbers of elements:
-%   1:<20        0 elements
-%   20:<40       1 element
-%   40:<60       2 elements
-%   60:<80       3 elements
-%   80:<100      4 elements
-%   100:<120     5 elements
-%   120:140      6 elements
+% Values between 1 and 57 correspond to different numbers of elements:
+%   1       0 elements
+%   2:7     1 element
+%   8:22    2 elements
+%   23:43   3 elements
+%   44:50   4 elements
+%   51:56   5 elements
+%   57      6 elements%
 %
 %   dVar will have varying numbers of rows depending on the number of
 %   elements, but will always have two columns: [node1 node2]
 
-if dvarDim < 20
+if dvarDim == 1
     % No nodal connections
     dVar = [0 0 0];
 else
-    if dvarDim >= 120
+    if dvarDim == 56
         % All nodes connected
         dVar = [elPot(2) elPot(3);
             elPot(3) elPot(4);
@@ -40,7 +40,7 @@ else
             elPot(2) elPot(4);
             elPot(3) elPot(5)];
     else
-        if dvarDim < 40
+        if dvarDim <= 7
             % One pairing of nodes
             group1 = [elPot(2) elPot(3);
                 elPot(3) elPot(4);
@@ -48,16 +48,10 @@ else
                 elPot(5) elPot(2);
                 elPot(2) elPot(4);
                 elPot(3) elPot(5)];
-            dim = dvarDim - 20;
-            for ii = 1:6
-               if dim < ii * (20/6)
-                   dim = ii;
-                   break
-               end
-            end
+            dim = dvarDim - 1;
             dVar = group1(dim,:);
         else
-            if dvarDim < 60
+            if dvarDim <= 22
                 % Two pairings of nodes
                 group2 = [elPot(3) elPot(4) elPot(4) elPot(5);
                     elPot(4) elPot(5) elPot(5) elPot(2);
@@ -74,17 +68,11 @@ else
                     elPot(2) elPot(5) elPot(5) elPot(3);
                     elPot(2) elPot(3) elPot(3) elPot(5);
                     elPot(2) elPot(4) elPot(3) elPot(5)];
-                dim = dvarDim - 40;
-                for ii = 1:15
-                    if dim < ii * (20/15)
-                        dim = ii;
-                        break
-                    end
-                end
+                dim = dvarDim - 7;
                 dVar = group2(dim,:);
                 dVar = reshape(dVar,[2,2])';
             else
-                if dvarDim < 80
+                if dvarDim <= 42
                     % Three pairings of nodes
                     group3 = [elPot(3) elPot(4) elPot(4) elPot(5) elPot(5) elPot(2);
                         elPot(4) elPot(5) elPot(5) elPot(2) elPot(2) elPot(3);
@@ -106,17 +94,11 @@ else
                         elPot(2) elPot(4) elPot(4) elPot(3) elPot(2) elPot(5);
                         elPot(3) elPot(5) elPot(3) elPot(2) elPot(5) elPot(4);
                         elPot(3) elPot(5) elPot(5) elPot(2) elPot(3) elPot(4)];
-                    dim = dvarDim - 60;
-                    for ii = 1:20
-                        if dim < ii * (20/20)
-                            dim = ii;
-                            break
-                        end
-                    end
+                    dim = dvarDim - 22;
                     dVar = group3(dim,:);
                     dVar = reshape(dVar,[2,3])';
                 else
-                    if dvarDim < 100
+                    if dvarDim <= 49
                         % Four pairings of nodes
                         group4 = [elPot(2) elPot(3) elPot(3) elPot(4) elPot(4) elPot(5) elPot(5) elPot(2);
                             elPot(2) elPot(4) elPot(3) elPot(5) elPot(3) elPot(4) elPot(4) elPot(5);
@@ -125,13 +107,7 @@ else
                             elPot(2) elPot(4) elPot(3) elPot(5) elPot(2) elPot(3) elPot(3) elPot(4);
                             elPot(2) elPot(4) elPot(3) elPot(5) elPot(5) elPot(2) elPot(3) elPot(4);
                             elPot(2) elPot(4) elPot(3) elPot(5) elPot(2) elPot(3) elPot(4) elPot(5)];
-                        dim = dvarDim - 80;
-                        for ii = 1:7
-                            if dim < ii * (20/7)
-                                dim = ii;
-                                break
-                            end
-                        end
+                        dim = dvarDim - 42;
                         dVar = group4(dim,:);
                         dVar = reshape(dVar,[2,4])';
                     else
@@ -142,13 +118,7 @@ else
                             elPot(2) elPot(4) elPot(3) elPot(5) elPot(5) elPot(2) elPot(2) elPot(3) elPot(3) elPot(4);
                             elPot(2) elPot(4) elPot(3) elPot(5) elPot(2) elPot(3) elPot(3) elPot(4) elPot(4) elPot(5);
                             elPot(2) elPot(4) elPot(3) elPot(5) elPot(3) elPot(4) elPot(4) elPot(5) elPot(5) elPot(2)];
-                        dim = dvarDim - 100;
-                        for ii = 1:6
-                            if dim < ii * (20/6)
-                                dim = ii;
-                                break
-                            end
-                        end
+                        dim = dvarDim - 49;
                         dVar = group5(dim,:);
                         dVar = reshape(dVar,[2,5])';
                     end
