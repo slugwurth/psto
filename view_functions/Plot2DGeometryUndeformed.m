@@ -29,6 +29,11 @@ end
 % Clear the current figure and hold the graph
 hold on
 
+% Sort the elements and find duplicates
+[c,~,ic] = unique(elConnec(:,2:3),'rows');
+a_counts = accumarray(ic,1);
+elConnec = [c, a_counts];
+
 % Determine the total number of elements and nodes per element
 [rows,cols] = size(elConnec);
 nel = rows;
@@ -39,7 +44,7 @@ for e = 1:nel
     x = [];
     y = [];
     for n = 1:nne 
-       node = elConnec(e,1+n);
+       node = elConnec(e,n);
        x = [x, nodalCoords(nodalCoords(:,1) == node,2)];
        y = [y, nodalCoords(nodalCoords(:,1) == node,3)];    
     end
@@ -48,9 +53,15 @@ for e = 1:nel
     x = [x,x(1)];
     y = [y,y(1)];
     H = line(x,y);
-    set(H,'LineWidth',0.5);        % Set line thickness
-    set(H,'Color',[0.3 0.75 0.93]);             % Draw in grey color
-%     set(H,'Color',[1 1 1]);
+    set(H,'LineWidth',2);               % Set line thickness
+    if elConnec(e,3) == 1
+    set(H,'Color',[0 0 0]);             % Draw in grey color
+    else
+        if elConnec(e,3) == 2
+            set(H,'Color',[1 0 0]);
+        end
+    end
+
     
     % Insert a dot at each node
     H = plot(x,y,'k.');

@@ -14,18 +14,18 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 1000;% the population size
+    count = 2960;% the population size
     
     % Input Data
     % General parameters; Design space
-    nndx = 13; % Number of nodes in x
-    nndy = 5; % Number of nodes in y
-    scale = 0.5; % Scaling factor for element size
+    nndx = 4; % Number of nodes in x
+    nndy = 3; % Number of nodes in y
+    scale = 2.5; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
     type = 2;   % 1 for MBB
-    % 2 for Cantilever midplane tip-load
+                % 2 for Cantilever midplane tip-load
     
     % Set point load
     pload = 1000;% unitless
@@ -81,22 +81,22 @@ end
 % Convergence Criteria
 ctol = 1e-3;
 
-% Number of iterations to keep for convergence calc
+% Number of pre-scatter iterations to keep for convergence calc
 rollKeep = 7;
 
-% Craziness interval
-crazyIter = 25;
+% Scattering trigger length
+sTrig = 10;
 
 % Iteration limit
 iterLimit = 10000;
 
 % Velocity maximum
-vmax = 5;
+vmax = 10;
 
 % Velocity Update Tuning
-omega = 0.3925;
-pPhi = 2.5586;
-gPhi = 1.3358;
+omega = 0.4;
+pPhi = 0.2;
+gPhi = 0.6;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
@@ -170,13 +170,15 @@ popFitChange = 1;
 nScatter = 0;
 % Initialize a position plotting array
 popPos = ones(size(p.popMember(1).dVar,1),count);
+% Initialize a scatter boolean
+sctBool = 0;
 
 %% Iteration
 
 while iter <= iterLimit
     
     % Check if current interval needs scattering
-    if mod(iter,crazyIter) == 0
+    if (sctBool)
         % Update the number of scatterings
         nScatter = nScatter + 1;
         % Inspect a rolling fitness vector for convergence
@@ -255,6 +257,9 @@ while iter <= iterLimit
             end
         end
         
+        % Reset scatter boolean
+        sctBool = 0;
+        
     else % Normal movement
         
         % Choose random personal and group coeff
@@ -308,6 +313,19 @@ while iter <= iterLimit
             end
             % Data structure for population position plotting
             popPos(:,ii) = p.popMember(ii).dVar(:,2);
+            
+            % Check if next iteration should be scattered
+            if iter > sTrig
+                % If the current and global best nad been equal too long
+                if popFitHist(iter-sTrig:iter,1) == popFitHist(iter-sTrig:iter,2)
+                    sctBool = 1;
+                else
+                    % If the current and global best aren't converging
+                    if range(popFitHist(iter-sTrig:iter,1)) < ctol && range(popFitHist(iter-sTrig:iter,2)) < ctol
+                        sctBool = 1;
+                    end
+                end
+            end
         end
     end
     
@@ -365,7 +383,7 @@ while iter <= iterLimit
         hold on
         [nn,~] = meshgrid(1:1:size(p.popMember(1).dVar,1),1:1:count);
         nn = reshape(nn',[],1); popPos = reshape(popPos,[],1);
-        if mod(iter,crazyIter) == 0
+        if (sctBool)
             scatter(nn,popPos,'r.');
         else
             scatter(nn,popPos,'k.');

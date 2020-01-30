@@ -372,7 +372,7 @@ classdef particle
                volumeFraction = obj.nel/(size(obj.elPot,1)*6);
                
                % Weights for the fitness/objective funciton
-               a = 5; b = 5; 
+               a = 1; b = 2; 
                c = 5; d = 5;
                
                % Volume fraction constraint
@@ -390,11 +390,11 @@ classdef particle
 %                    obj.fitnessVal strainEnergy volumeFraction vcons a b c d];
 
                % Volume Fraction Penalization
-               penalty = (exp(volumeFraction-vcons)-1) + (exp(vcons-volumeFraction)-1);
+               penalty = (exp(abs(volumeFraction-vcons))-1);
                obj.fitnessVal = strainEnergy + penalty;
 %              % Append to a history matrix
                obj.fitnessValComponents = [obj.fitnessValComponents; ...
-                   obj.fitnessVal strainEnergy penalty vcons a b c d];
+                   obj.fitnessVal strainEnergy penalty vcons volumeFraction nan nan nan];
         end
         
         % Memorize current positional state
@@ -413,7 +413,7 @@ classdef particle
         function [] = renderParticle(obj,id)
             % Call the Plot2DGeometry function and pass an index value for
             % a title
-            Plot2DGeometryUndeformed(obj.elDist,obj.nodalCoords,0,['Particle ' num2str(id)]);
+            Plot2DGeometryUndeformed(obj.elDist,obj.nodalCoords,0,['Position ' num2str(id)]);
         end
     end
     
