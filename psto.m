@@ -14,13 +14,13 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 160;% the population size
+    count = 500;% the population size
     
     % Input Data
     % General parameters; Design space
     nndx = 13; % Number of nodes in x
     nndy = 5; % Number of nodes in y
-    scale = 0.5; % Scaling factor for element size
+    scale = 5; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
@@ -82,7 +82,7 @@ end
 ctol = 1e-4;
 
 % Number of pre-scatter iterations to keep for convergence calc
-rollKeep = 7;
+rollKeep = 21;
 
 % Scattering trigger length
 sTrig = 10;
@@ -91,12 +91,12 @@ sTrig = 10;
 iterLimit = 10000;
 
 % Velocity maximum
-vmax = 8;
+vmax = 10;
 
 % Velocity Update Tuning
-omega = 0.8;
-pPhi = 0.3;
-gPhi = 0.5;
+omega = -0.2089;
+pPhi = -0.0787;
+gPhi = 3.7637;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
@@ -186,7 +186,7 @@ while iter <= iterLimit
         % Inspect a rolling fitness vector for convergence
         if nScatter <= rollKeep
             % Write into rolling vector
-            popFitRolling(nScatter) = popFitCurrentBest;
+            popFitRolling(nScatter) = popFitCurrentBest(1);
         else
             % Trim vector
             popFitRolling = [popFitRolling(2:end); popFitCurrentBest];
@@ -352,13 +352,13 @@ while iter <= iterLimit
         end
     end
     
-    % Find population fitness mean, best, and worst
+    % Record to terminal variables
     popFitMean = mean([p.popMember.fitnessVal]);
-    popFitCurrentBest = p.popMember(bestPar(1)).fitnessVal;
+    popFitCurrentBest = p.popMember(bestPar(1)).fitnessValComponents(iter+1,:);
     popFitGlobalBest = p.popMember(1).gBestFit;
     popFitWorst = p.popMember(worstPar(1)).fitnessVal;
     % Append population fitness statistics to history vector
-    popFitHist(iter+1,:) = [popFitGlobalBest popFitCurrentBest popFitMean popFitWorst];
+    popFitHist(iter+1,:) = [popFitGlobalBest popFitCurrentBest(1) popFitMean popFitWorst];
     
     % Render a selected particle
     if (pRender)
@@ -400,7 +400,7 @@ while iter <= iterLimit
         y = grd(elPot(:,2:5),3); y = reshape(y,nUnCell,4); y = y';
         % Remap unit cell values to "density" values
         dens = p.popMember(bestPar(1)).dVar(:,2);
-        dens(dens == 1) = 0; dens(dens > 1 & dens <= 7) = 1; dens(dens > 7 & dens <= 22) = 2; 
+        dens(dens == 1) = 0; dens(dens > 1 & dens <= 7) = 1; dens(dens > 7 & dens <= 22) = 2;
         dens(dens > 22 & dens <= 42) = 3; dens(dens > 42 & dens <= 49) = 4;
         dens(dens > 49 & dens <= 55) = 5; dens(dens == 56) = 6;
         
@@ -409,7 +409,7 @@ while iter <= iterLimit
         cla
         hold on
         patch(x,y,dens);
-        colormap(flipud(gray(7))); 
+        colormap(flipud(gray(7)));
         xlim([0 (nndx-1)*scale]); ylim([0 (nndy-1)*scale]); pbaspect([nndx nndy 1]);
         set(gca,'CLim',[0 7]); c = colorbar('Ticks',[0 1 2 3 4 5 6]); c.Label.String = 'Number of Elements';
         title(['Particle ' num2str(bestPar(1)) ', Element Count, Iteration ' num2str(iter)]);
@@ -424,12 +424,12 @@ while iter <= iterLimit
     
     % Terminal write outs
     % Write out iteration count
-    fprintf('Iteration %6u of %6u ~~~~~~~~~~~~~~~~~~~~~~~~\n',iter,iterLimit);
+    fprintf('Iteration %6u of %6u\n',iter,iterLimit);
     % Write out population fitness statistics
-    fprintf(['\tGroup Best fitness:\t\t\t\t' num2str(popFitGlobalBest) '\n']);
-    fprintf(['\tCurrent Best fitness:\t\t\t' num2str(popFitCurrentBest) '\n']);
-    fprintf(['\tPopulation fitness mean:\t\t' num2str(popFitMean) '\n']);
-    fprintf(['\tWorst fitness:\t\t\t\t\t' num2str(popFitWorst) '\n']);
+    fprintf('\tGlobal Best fitness:\t\t\t%.5f\tSE-----\tVolPen-\tVolTar-\tVol----\n',popFitGlobalBest);
+    fprintf('\tCurrent Best fitness:\t\t\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\n',popFitCurrentBest(1:5));
+    fprintf('\tPopulation fitness mean:\t\t%.5f\t-------\t-------\t-------\t-------\n',popFitMean);
+    fprintf('\tWorst fitness:\t\t\t\t\t%.5f\t-------\t-------\t-------\t-------\n',popFitWorst);
     
     % Update iteration count
     iter = iter + 1;

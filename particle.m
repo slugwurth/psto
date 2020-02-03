@@ -371,7 +371,10 @@ classdef particle
                volumeFraction = obj.nel/(size(obj.elPot,1)*6);
                
                % Volume fraction constraint
-               vcons = 0.50;
+               vcons = 10/18;
+               
+               % Penalty coefficient
+               a = 2;
 
                % Volume Fraction Penalization
                penalty = (exp(abs(volumeFraction-vcons))-1);
@@ -379,7 +382,7 @@ classdef particle
                
                % Append to a history matrix
                obj.fitnessValComponents = [obj.fitnessValComponents; ...
-                   obj.fitnessVal strainEnergy penalty vcons volumeFraction nan nan nan];
+                   obj.fitnessVal strainEnergy penalty vcons volumeFraction a nan nan];
         end
         
         % Memorize current positional state
