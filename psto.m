@@ -262,10 +262,11 @@ while iter <= iterLimit
         
     else % Normal movement
         
-        % Choose random personal and group coeff
-        rp = rand; rg = rand;
+        
         % Move particle and evaluate fitness
         for ii = 1:count
+            % Choose random personal and group coeff
+            rp = rand; rg = rand;
             % Update particle velocity according to Pedersen 2010:
             p.popMember(ii).vel = omega.*p.popMember(ii).vel + ...
                 pPhi.*rp.*(p.popMember(ii).pBestPos(:,2) - p.popMember(ii).dVar(:,2)) + ...
