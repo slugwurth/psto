@@ -18,13 +18,13 @@ if gen == 1
     
     % Input Data
     % General parameters; Design space
-    nndx = 3; % Number of nodes in x
-    nndy = 3; % Number of nodes in y
-    scale = 5; % Scaling factor for element size
+    nndx = 13; % Number of nodes in x
+    nndy = 5; % Number of nodes in y
+    scale = 0.5; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type
-    type = 2;   % 1 for MBB
+    type = 1;   % 1 for MBB
                 % 2 for Cantilever midplane tip-load
     
     % Set point load
@@ -79,7 +79,7 @@ end
 %% Optimization Parameters
 
 % Convergence Criteria
-ctol = 1e-3;
+ctol = 1e-4;
 
 % Number of pre-scatter iterations to keep for convergence calc
 rollKeep = 7;
@@ -91,25 +91,27 @@ sTrig = 10;
 iterLimit = 10000;
 
 % Velocity maximum
-vmax = 10;
+vmax = 8;
 
 % Velocity Update Tuning
-omega = 0.4;
-pPhi = 0.2;
-gPhi = 0.6;
+omega = 0.8;
+pPhi = 0.3;
+gPhi = 0.5;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
 pRender = 1;% set to zero for none
 
-% Initialize structures for animations
-fitMOV(iterLimit) = struct('cdata',[],'colormap',[]);
-parMOV(iterLimit) = struct('cdata',[],'colormap',[]);
-posMOV(iterLimit) = struct('cdata',[],'colormap',[]);
-vebMOV(iterLimit) = struct('cdata',[],'colormap',[]);
-
-% Change figure background color to white
-get(0,'Factory'); set(0,'defaultfigurecolor',[1 1 1]);
+if (pRender)
+    % Initialize structures for animations
+    fitMOV(iterLimit) = struct('cdata',[],'colormap',[]);
+    parMOV(iterLimit) = struct('cdata',[],'colormap',[]);
+    posMOV(iterLimit) = struct('cdata',[],'colormap',[]);
+    vebMOV(iterLimit) = struct('cdata',[],'colormap',[]);
+    
+    % Change figure background color to white
+    get(0,'Factory'); set(0,'defaultfigurecolor',[1 1 1]);
+end
 
 %% Initialization
 
@@ -234,10 +236,9 @@ while iter <= iterLimit
             popPos(:,ii) = p.popMember(ii).dVar(:,2);
         end
         
-        % Update pBest and gBest
         % Find gBestFit and gWorstFit
         bestPar = find([p.popMember.fitnessVal] == min([p.popMember.fitnessVal]));
-        worstPar = find([p.popMember.fitnessVal] == max([p.popMember.fitnessVal]));
+        worstPar = find([p.popMember.fitnessVal] == max([p.popMember.fitnessVal])); %#ok<NASGU>
         
         % Update particle gBest and pBest
         for ii = 1:count
@@ -261,7 +262,6 @@ while iter <= iterLimit
         sctBool = 0;
         
     else % Normal movement
-        
         
         % Move particle and evaluate fitness
         for ii = 1:count
@@ -330,7 +330,6 @@ while iter <= iterLimit
         end
     end
     
-    % Update pBest and gBest
     % Find gBestFit and gWorstFit
     bestPar = find([p.popMember.fitnessVal] == min([p.popMember.fitnessVal]));
     worstPar = find([p.popMember.fitnessVal] == max([p.popMember.fitnessVal]));
@@ -373,9 +372,10 @@ while iter <= iterLimit
         fig2 = figure(2);
         cla
         plot(1:1:iter,popFitHist(1:iter,1),1:1:iter,popFitHist(1:iter,2),1:1:iter,popFitHist(1:iter,3));
-        ylim([0 3]);
-        title(['Population Fitness, Iteration ' num2str(iter)]);
+        ylim([0 2]);
+        title(['Population: Objective Function Value, Iteration ' num2str(iter)]);
         legend('Global Best','Current Best','Current Mean');
+        xlabel('Iteration'); ylabel('Objective Value');
         drawnow limitrate
         
         % Show the positions of the population
@@ -391,15 +391,28 @@ while iter <= iterLimit
         end
         ylim([1 56]); xlim([0 size(p.popMember(1).vel,1)]);
         title(['Population Positions, Iteration ' num2str(iter)]);
+        xlabel('Unit Cell Number'); ylabel('Unit Cell Value');
         drawnow limitrate; clear popPos;
         
-        % Show the velocity term for the first particle
+        % Plotting data structures for patch function
+        nUnCell = (nndx-1)*(nndy-1); elPot = elementPotential(nndx,nndy); grd = nodalGrid(nndx,nndy,scale);
+        x = grd(elPot(:,2:5),2); x = reshape(x,nUnCell,4); x = x'; x(3:4,:) = circshift(x(3:4,:),1,1);
+        y = grd(elPot(:,2:5),3); y = reshape(y,nUnCell,4); y = y';
+        % Remap unit cell values to "density" values
+        dens = p.popMember(bestPar(1)).dVar(:,2);
+        dens(dens == 1) = 0; dens(dens > 1 & dens <= 7) = 1; dens(dens > 7 & dens <= 22) = 2; 
+        dens(dens > 22 & dens <= 42) = 3; dens(dens > 42 & dens <= 49) = 4;
+        dens(dens > 49 & dens <= 55) = 5; dens(dens == 56) = 6;
+        
+        % Show the unit cell value of the best particle
         fig5 = figure(5);
         cla
         hold on
-        bar(1:1:size(p.popMember(bestPar(1)).vel,1),p.popMember(bestPar(1)).vel);
-        ylim([-56 56]); xlim([1 size(p.popMember(bestPar(1)).vel,1)]);
-        title(['Particle ' num2str(bestPar(1)) ' Velocity, Iteration ' num2str(iter)]);
+        patch(x,y,dens);
+        colormap(flipud(gray(7))); 
+        xlim([0 (nndx-1)*scale]); ylim([0 (nndy-1)*scale]); pbaspect([nndx nndy 1]);
+        set(gca,'CLim',[0 7]); c = colorbar('Ticks',[0 1 2 3 4 5 6]); c.Label.String = 'Number of Elements';
+        title(['Particle ' num2str(bestPar(1)) ', Element Count, Iteration ' num2str(iter)]);
         drawnow limitrate
         
         % Write into movie structure
@@ -445,25 +458,27 @@ end
 save([fis,'_solution'],'-v7.3','p','popFitHist','iter','omega','pPhi','gPhi');
 
 % Write movis to gif
-fitGifName = [fis '_fitnessAnimated.gif']; % Specify the output file name
-parGifName = [fis '_bestParAnimated.gif'];
-posGifName = [fis '_populationPositionAnimated.gif'];
-vebGifName = [fis '_velocityBestParticleAnimated.gif'];
-for idx = 1:(iter-1)
-    disp(['Saving GIFs Frame ' num2str(idx)]);
-    [aFIT,mapFIT] = rgb2ind(fitMOV(idx).cdata,256);
-    [aPAR,mapPAR] = rgb2ind(parMOV(idx).cdata,256);
-    [aPOS,mapPOS] = rgb2ind(posMOV(idx).cdata,256);
-    [aVEB,mapVEB] = rgb2ind(vebMOV(idx).cdata,256);
-    if idx == 1
-        imwrite(aFIT,mapFIT,fitGifName,'gif','LoopCount',Inf,'DelayTime',1);
-        imwrite(aPAR,mapPAR,parGifName,'gif','LoopCount',Inf,'DelayTime',1);
-        imwrite(aPOS,mapPOS,posGifName,'gif','LoopCount',Inf,'DelayTime',1);
-        imwrite(aVEB,mapVEB,vebGifName,'gif','LoopCount',Inf,'DelayTime',1);
-    else
-        imwrite(aFIT,mapFIT,fitGifName,'gif','WriteMode','append','DelayTime',0.2);
-        imwrite(aPAR,mapPAR,parGifName,'gif','WriteMode','append','DelayTime',0.2);
-        imwrite(aPOS,mapPOS,posGifName,'gif','WriteMode','append','DelayTime',0.2);
-        imwrite(aVEB,mapVEB,vebGifName,'gif','WriteMode','append','DelayTime',0.2);
+if (pRender)
+    fitGifName = [fis '_fitnessAnimated.gif']; % Specify the output file name
+    parGifName = [fis '_bestParAnimated.gif'];
+    posGifName = [fis '_populationPositionAnimated.gif'];
+    vebGifName = [fis '_velocityBestParticleAnimated.gif'];
+    for idx = 1:(iter-1)
+        disp(['Saving GIFs Frame ' num2str(idx)]);
+        [aFIT,mapFIT] = rgb2ind(fitMOV(idx).cdata,256);
+        [aPAR,mapPAR] = rgb2ind(parMOV(idx).cdata,256);
+        [aPOS,mapPOS] = rgb2ind(posMOV(idx).cdata,256);
+        [aVEB,mapVEB] = rgb2ind(vebMOV(idx).cdata,256);
+        if idx == 1
+            imwrite(aFIT,mapFIT,fitGifName,'gif','LoopCount',Inf,'DelayTime',1);
+            imwrite(aPAR,mapPAR,parGifName,'gif','LoopCount',Inf,'DelayTime',1);
+            imwrite(aPOS,mapPOS,posGifName,'gif','LoopCount',Inf,'DelayTime',1);
+            imwrite(aVEB,mapVEB,vebGifName,'gif','LoopCount',Inf,'DelayTime',1);
+        else
+            imwrite(aFIT,mapFIT,fitGifName,'gif','WriteMode','append','DelayTime',0.2);
+            imwrite(aPAR,mapPAR,parGifName,'gif','WriteMode','append','DelayTime',0.2);
+            imwrite(aPOS,mapPOS,posGifName,'gif','WriteMode','append','DelayTime',0.2);
+            imwrite(aVEB,mapVEB,vebGifName,'gif','WriteMode','append','DelayTime',0.2);
+        end
     end
 end
