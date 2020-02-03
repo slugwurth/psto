@@ -366,33 +366,18 @@ classdef particle
            % Note: This formulation of particle fitness is subject to
            % change and not necessarily the best formulation
                
-               % Use the normalized strain energy and add the volume
-               % fraction
+               % FInd normalized strain energy and volume fraction
                strainEnergy = (1 - obj.gsStrainEnergy/(obj.delta'*obj.KK*obj.delta));
                volumeFraction = obj.nel/(size(obj.elPot,1)*6);
                
-               % Weights for the fitness/objective funciton
-               a = 1; b = 2; 
-               c = 5; d = 5;
-               
                % Volume fraction constraint
                vcons = 0.50;
-               
-%                % Penalize a density above a threshold
-%                if volumeFraction > vcons
-%                    obj.fitnessVal = a*strainEnergy + b*volumeFraction;
-%                else
-%                    obj.fitnessVal = c*strainEnergy + d*volumeFraction;
-%                end
-               
-%                % Append to a history matrix
-%                obj.fitnessValComponents = [obj.fitnessValComponents; ...
-%                    obj.fitnessVal strainEnergy volumeFraction vcons a b c d];
 
                % Volume Fraction Penalization
                penalty = (exp(abs(volumeFraction-vcons))-1);
                obj.fitnessVal = strainEnergy + penalty;
-%              % Append to a history matrix
+               
+               % Append to a history matrix
                obj.fitnessValComponents = [obj.fitnessValComponents; ...
                    obj.fitnessVal strainEnergy penalty vcons volumeFraction nan nan nan];
         end

@@ -14,13 +14,13 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 2960;% the population size
+    count = 160;% the population size
     
     % Input Data
     % General parameters; Design space
-    nndx = 4; % Number of nodes in x
+    nndx = 3; % Number of nodes in x
     nndy = 3; % Number of nodes in y
-    scale = 2.5; % Scaling factor for element size
+    scale = 5; % Scaling factor for element size
     
     % Boundary conditions
     % Choose BC type

@@ -15,14 +15,14 @@ function [dVar] = dvarParse(elPot,dvarDim)
 %                   
 
 %% Assign Connectivity
-% Values between 1 and 57 correspond to different numbers of elements:
+% Values between 1 and 56 correspond to different numbers of elements:
 %   1       0 elements
 %   2:7     1 element
 %   8:22    2 elements
-%   23:43   3 elements
-%   44:50   4 elements
-%   51:56   5 elements
-%   57      6 elements%
+%   23:42   3 elements
+%   43:49   4 elements
+%   50:55   5 elements
+%   56      6 elements%
 %
 %   dVar will have varying numbers of rows depending on the number of
 %   elements, but will always have two columns: [node1 node2]
