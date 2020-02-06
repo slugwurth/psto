@@ -14,12 +14,12 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 500;% the population size
+    count = 160;% the population size
     
     % Input Data
     % General parameters; Design space
-    nndx = 13; % Number of nodes in x
-    nndy = 5; % Number of nodes in y
+    nndx = 3; % Number of nodes in x
+    nndy = 2; % Number of nodes in y
     scale = 5; % Scaling factor for element size
     
     % Boundary conditions
@@ -36,12 +36,12 @@ if gen == 1
     
     % Process interpretation
     % Scan direction
-    scanDir = [0 1];% [x y]
-    scan = 0;% logical yes/no
-    maxRed = 0.1;% maximum percent reduction
+    scanDir = [1 0];% [x y]
+    scan = 1;% logical yes/no
+    maxRed = 0.2;% maximum percent reduction
     
     % File saving
-    fis = 'pop';% filename
+    fis = '3x2_popScanX';% filename
     fis = [char(datetime('now','Format','yyyyMMdd''-''HHmm')),'_',fis];% append date and time
 end
 
@@ -79,10 +79,10 @@ end
 %% Optimization Parameters
 
 % Convergence Criteria
-ctol = 1e-4;
+ctol = 1e-3;
 
 % Number of pre-scatter iterations to keep for convergence calc
-rollKeep = 21;
+rollKeep = 7;
 
 % Scattering trigger length
 sTrig = 10;
@@ -94,9 +94,9 @@ iterLimit = 10000;
 vmax = 10;
 
 % Velocity Update Tuning
-omega = -0.2089;
-pPhi = -0.0787;
-gPhi = 3.7637;
+omega = 0.4;
+pPhi = 0.2;
+gPhi = 0.6;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
@@ -189,7 +189,7 @@ while iter <= iterLimit
             popFitRolling(nScatter) = popFitCurrentBest(1);
         else
             % Trim vector
-            popFitRolling = [popFitRolling(2:end); popFitCurrentBest];
+            popFitRolling = [popFitRolling(2:end); popFitCurrentBest(1)];
             % Find fitness change
             popFitChange = range(popFitRolling);
             % Check for convergence
@@ -221,6 +221,10 @@ while iter <= iterLimit
                 p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
                 % Update position dependent properties
                 p.popMember(ii) = newPositionProps(p.popMember(ii));
+                % Apply the process interpreter
+                if (scan)
+                    p.popMember(ii) = pInterp(p.popMember(ii));
+                end
                 % Call the fitnessEval method
                 p.popMember(ii) = fitnessEval(p.popMember(ii));
             else
@@ -301,6 +305,10 @@ while iter <= iterLimit
                 p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
                 % Update position dependent properties
                 p.popMember(ii) = newPositionProps(p.popMember(ii));
+                % Apply the process interpreter
+                if (scan)
+                    p.popMember(ii) = pInterp(p.popMember(ii));
+                end
                 % Call the fitnessEval method
                 p.popMember(ii) = fitnessEval(p.popMember(ii));
             else

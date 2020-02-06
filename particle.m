@@ -116,7 +116,10 @@ classdef particle
                     % this code should be cleaned up
                     nne = 2 ; % Number of nodes per element
                     obj.nodof = 3 ; % Number of degrees of freedom per node
-                    obj.eldof = nne * obj.nodof; % Number of degrees of freedom per element                    
+                    obj.eldof = nne * obj.nodof; % Number of degrees of freedom per element
+                    
+                    % Write the scan direction into a class property
+                    obj.scanDir = scanDir;
                     
                 % Ground Structure Calculation
                     % This section calculates the strain energy of the
@@ -128,8 +131,6 @@ classdef particle
                 % Initialize Particle Position
                     % This section generates position-dependent properties that are allowed to
                     % change after initialization
-                    % Write the scan direction into a class property
-                    obj.scanDir = scanDir;
                     % Generate an element distribution from a random selection
                     % of design values for each unit cell
                     [obj.elDist,obj.randVar,~,obj.nodalCoords] = dvarPlacement(obj.nndx,obj.nndy,obj.scale,obj.type);
@@ -212,6 +213,10 @@ classdef particle
             obj.nel = size(obj.elDist,1);
             % Build the element property matrix
             obj.prop = buildProps(obj.nel,obj.nomProp(1),obj.nomProp(2),obj.nomProp(3));
+            % Apply the process interpreter
+            if (obj.scan)
+                obj = pInterp(obj);
+            end
             % Simulate performance
             obj = simulate(obj);
             % Calculate ground structure strain energy
@@ -371,10 +376,10 @@ classdef particle
                volumeFraction = obj.nel/(size(obj.elPot,1)*6);
                
                % Volume fraction constraint
-               vcons = 10/18;
+               vcons = 0.5;
                
                % Penalty coefficient
-               a = 2;
+               a = 1;
 
                % Volume Fraction Penalization
                penalty = (exp(abs(volumeFraction-vcons))-1);

@@ -73,7 +73,7 @@ elCoords = elCoords(index,:);
 wMid = 0.5;
 
 % Initialize an element weight matrix
-weight = ones(size(elMids,1),2);% Nx2 [n w]
+weight = zeros(size(elMids,1),2);% Nx2 [n w]
 % Populate element numbers
 weight(:,1) = elMids(:,1);% n
 
@@ -82,13 +82,13 @@ for ii = 1:size(elCoords,1)
     if elCoords(ii,2) == elCoords(ii,4)% horizontal element
         % Check parallelism
         if scanDir(2) == 1% vertically travelling scan
-            weight(ii,2) = 0;% element parallel to scanline
+            weight(ii,2) = 1;% element parallel to scanline
         end
     else
         if elCoords(ii,3) == elCoords(ii,5)% vertical element
             % Check parallelism
             if scanDir(1) == 1% horizontally travelling scan
-                weight(ii,2) = 0;% element parallel to scanline
+                weight(ii,2) = 1;% element parallel to scanline
             end
         else % off-axis element
             weight(ii,2) = wMid;% element oblique to scanline
