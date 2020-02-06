@@ -163,7 +163,7 @@ popFitRolling = ones(rollKeep,1);
 popFitMean = mean([p.popMember.fitnessVal]);
 % Append population fitness to history vector
 popFitHist(1,:) = [p.popMember(bestPar(1)).fitnessVal p.popMember(bestPar(1)).fitnessVal...
-    popFitMean p.popMember(worstPar).fitnessVal];
+    popFitMean p.popMember(worstPar(1)).fitnessVal];
 % Initialize iteration counter
 iter = 1;
 % Initialize fitness change checksum
