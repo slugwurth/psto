@@ -36,12 +36,12 @@ if gen == 1
     
     % Process interpretation
     % Scan direction
-    scanDir = [1 0];% [x y]
+    scanDir = [0 1];% [x y]
     scan = 1;% logical yes/no
     maxRed = 0.2;% maximum percent reduction
     
     % File saving
-    fis = '3x2_popScanX';% filename
+    fis = '3x2_popScanY';% filename
     fis = [char(datetime('now','Format','yyyyMMdd''-''HHmm')),'_',fis];% append date and time
 end
 
@@ -456,6 +456,10 @@ for ii = 1:count
     p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
     % Calculate new position-dependent properties
     p.popMember(ii) = newPositionProps(p.popMember(ii));
+    % Apply the process interpreter
+    if (scan)
+        p.popMember(ii) = pInterp(p.popMember(ii));
+    end
     % Evaluate fitness
     p.popMember(ii) = fitnessEval(p.popMember(ii));
 end
