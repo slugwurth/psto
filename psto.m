@@ -221,10 +221,6 @@ while iter <= iterLimit
                 p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
                 % Update position dependent properties
                 p.popMember(ii) = newPositionProps(p.popMember(ii));
-                % Apply the process interpreter
-                if (scan)
-                    p.popMember(ii) = pInterp(p.popMember(ii));
-                end
                 % Call the fitnessEval method
                 p.popMember(ii) = fitnessEval(p.popMember(ii));
             else
@@ -305,10 +301,6 @@ while iter <= iterLimit
                 p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
                 % Update position dependent properties
                 p.popMember(ii) = newPositionProps(p.popMember(ii));
-                % Apply the process interpreter
-                if (scan)
-                    p.popMember(ii) = pInterp(p.popMember(ii));
-                end
                 % Call the fitnessEval method
                 p.popMember(ii) = fitnessEval(p.popMember(ii));
             else
@@ -456,10 +448,6 @@ for ii = 1:count
     p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
     % Calculate new position-dependent properties
     p.popMember(ii) = newPositionProps(p.popMember(ii));
-    % Apply the process interpreter
-    if (scan)
-        p.popMember(ii) = pInterp(p.popMember(ii));
-    end
     % Evaluate fitness
     p.popMember(ii) = fitnessEval(p.popMember(ii));
 end
