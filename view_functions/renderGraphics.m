@@ -104,7 +104,7 @@ if scan == 1
     % Normalize element stiffnesses
     prop = prop(:,1)./E;
     % Plot undeformed structure with normalized stiffness superimposed
-    Plot2DGeometryUndeformed(elDist,nodalCoords,0,'Normalized Stiffness',prop);
+    Plot2DGeometryUndeformed(elDist,nodalCoords,1,'Normalized Stiffness',prop);
 end
 % Regular element number overlay
 if scan == 0
