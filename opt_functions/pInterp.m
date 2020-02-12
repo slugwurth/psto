@@ -79,15 +79,15 @@ weight(:,1) = elMids(:,1);% n
 
 % Assign weights according to parallelism
 for ii = 1:size(elCoords,1)
-    if elCoords(ii,2) == elCoords(ii,4)% horizontal element
+    if elCoords(ii,2) == elCoords(ii,4)% vertical element
         % Check parallelism
-        if scanDir(2) == 1% vertically travelling scan
+        if scanDir(1) == 1% horizontally travelling scan
             weight(ii,2) = 1;% element parallel to scanline
         end
     else
-        if elCoords(ii,3) == elCoords(ii,5)% vertical element
+        if elCoords(ii,3) == elCoords(ii,5)% horizontal element
             % Check parallelism
-            if scanDir(1) == 1% horizontally travelling scan
+            if scanDir(2) == 1% vertically travelling scan
                 weight(ii,2) = 1;% element parallel to scanline
             end
         else % off-axis element
@@ -126,8 +126,8 @@ if scanDir(1) == 1
             % Overlapping elements have no inter-element distance
             continue
         end
-        % Find normalized average distance
-        lag(ii,2) = (sum(id)*maxRed)/((nel-1)*dMax);
+        % Find gap count fraction
+        lag(ii,2) = (sum(id>0)/nel);
     end
 end
 
@@ -153,11 +153,8 @@ if scanDir(2) == 1
             % Overlapping elements have no inter-element distance
             continue
         end
-        % Find normalized average distance
-        lag(ii,2) = (sum(id)*maxRed)/((nel-1)*dMax);
-        if isnan(lag(ii,2))
-            pause(1)
-        end
+        % Find gap count fraction
+        lag(ii,2) = (sum(id>0)/nel);
     end
 end
 
@@ -179,11 +176,7 @@ weight(:,2) = weight(:,2) * maxRed;
 
 % Re-assign stiffness values
 for ii = 1:size(prop,1)
-    if ~isnan(weight(ii,:))
-        prop(weight(ii,1),1) = prop(weight(ii,1),1)*(1 - weight(ii,2));
-    else
-        pause(1)
-    end
+    prop(weight(ii,1),1) = prop(weight(ii,1),1)*(1 - weight(ii,2));
 end
 
 end

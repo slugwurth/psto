@@ -41,9 +41,9 @@ else
        % Fixed end will always be at position x = 0
        
        % Index by node number into freedom array
-       nodalFreeMat(nodalCoords(:,2) == 0,1) = 0;% constrain x travel
-       pin = grid(nndx*((nndy-1)/2)+1,1);% Left Mid-Plane
-       nodalFreeMat(pin,2) = 0;% mid-plane pin
+       nodalFreeMat(nodalCoords(:,2) == 0,:) = 0;% constrain xyr travel
+%        pin = grid(nndx*((nndy-1)/2)+1,1);% Left Mid-Plane
+%        nodalFreeMat(pin,2) = 0;% mid-plane pin
     end
 end
 
