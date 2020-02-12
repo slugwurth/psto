@@ -89,7 +89,7 @@ for e = 1:nel
             str = num2str(e);
         end
         H = text(xmid,ymid,str,'Interpreter', 'latex');
-        set(H,'FontSize',12);            %set font size
+        set(H,'FontSize',18);            %set font size
         set(H,'FontWeight','bold')       %set to bold font
         set(H,'Color',[180 0 0]/255);    % set font color to red
     end

@@ -37,12 +37,8 @@ if gen == 1
     % Process interpretation
     % Scan direction
     scanDir = [0 1];% [x y]
-    scan = 1;% logical yes/no
+    scan = 0;% logical yes/no
     maxRed = 0.2;% maximum percent reduction
-    
-    % File saving
-    fis = '3x2_popScanY';% filename
-    fis = [char(datetime('now','Format','yyyyMMdd''-''HHmm')),'_',fis];% append date and time
 end
 
 if gen == 0
@@ -74,6 +70,32 @@ if gen == 0
             p.popMember(ii).maxRed = maxRed;
         end
     end
+end
+
+%% File Naming
+% Automatically build filenames based on input parameters
+
+% Date and time
+fis = char(datetime('now','Format','yyyyMMdd''-''HHmm'));
+% Grid Size
+fis = [fis,'_',num2str(nndx),'x',num2str(nndy),'grid_'];
+% Load type
+if type == 1
+    fis = [fis,'mbb'];
+else 
+    if type == 2
+        fis = [fis,'canti'];
+    end
+end
+% Scan
+if scan
+   if scanDir(1) == 1
+       fis = [fis,'ScanX_'];
+   else
+       if scanDir(2) == 1
+           fis = [fis,'ScanY_'];
+       end
+   end
 end
 
 %% Optimization Parameters
