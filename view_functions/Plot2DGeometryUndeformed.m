@@ -30,6 +30,7 @@ end
 hold on
 
 % Sort the elements and find duplicates
+elConnec(:,2:3) = sort(elConnec(:,2:3),2);
 [c,ia,ic] = unique(elConnec(:,2:3),'rows');
 a_counts = accumarray(ic,1);
 elConnec = [c, a_counts];
@@ -53,7 +54,7 @@ for e = 1:nel
        y = [y, nodalCoords(nodalCoords(:,1) == node,3)];    
     end
     % Offset overlay for angled elements
-    if x(1)~=x(2) || y(1)~=y(2)
+    if x(1)~=x(2) && y(1)~=y(2)
         xmid = mean(x)+(x(2)-mean(x))/2;
         ymid = mean(y)+(y(2)-mean(y))/2;
     else
