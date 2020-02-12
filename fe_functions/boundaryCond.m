@@ -41,7 +41,9 @@ else
        % Fixed end will always be at position x = 0
        
        % Index by node number into freedom array
-       nodalFreeMat(nodalCoords(:,2) == 0,:) = 0;% Fixed
+       nodalFreeMat(nodalCoords(:,2) == 0,1) = 0;% constrain x travel
+       pin = grid(nndx*((nndy-1)/2)+1,1);% Left Mid-Plane
+       nodalFreeMat(pin,2) = 0;% mid-plane pin
     end
 end
 
@@ -73,17 +75,9 @@ else
         % Find node number
         L2 = grid(nndx*((nndy-1)/2+1),1);% Right Mid-Plane
         % Find index of load node
-        try
-            idxL2 = nodalCoords(:,1) == L2;
-        catch
-            pause(10);
-        end
+        idxL2 = nodalCoords(:,1) == L2;
         % Index by node number into load array
-        try
-            imposedLoad(idxL2,:) = [0 -pload 0];  % Right Mid-Plane, down in Y
-        catch
-            pause(10);
-        end
+        imposedLoad(idxL2,:) = [0 -pload 0];  % Right Mid-Plane, down in Y
     end
 end
 
