@@ -14,7 +14,7 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 160;% the population size
+    count = 100;% the population size
     
     % Input Data
     % General parameters; Design space
@@ -25,7 +25,7 @@ if gen == 1
     % Boundary conditions
     % Choose BC type
     type = 1;   % 1 for MBB
-                % 2 for Cantilever midplane tip-load
+    % 2 for Cantilever midplane tip-load
     
     % Set point load
     pload = 1000;% unitless
@@ -37,7 +37,7 @@ if gen == 1
     % Process interpretation
     % Scan direction
     scanDir = [0 1];% [x y]
-    scan = 1;% logical yes/no
+    scan = 0;% logical yes/no
     maxRed = 0.2;% maximum percent reduction
     
     % File saving
@@ -88,15 +88,15 @@ rollKeep = 7;
 sTrig = 10;
 
 % Iteration limit
-iterLimit = 10000;
+iterLimit = 100;
 
 % Velocity maximum
-vmax = 10;
+vmax = 3;
 
 % Velocity Update Tuning
-omega = 0.4;
+omega = 0.6;
 pPhi = 0.2;
-gPhi = 0.6;
+gPhi = 0.3;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
@@ -105,9 +105,7 @@ pRender = 1;% set to zero for none
 if (pRender)
     % Initialize structures for animations
     fitMOV(iterLimit) = struct('cdata',[],'colormap',[]);
-    parMOV(iterLimit) = struct('cdata',[],'colormap',[]);
     posMOV(iterLimit) = struct('cdata',[],'colormap',[]);
-    vebMOV(iterLimit) = struct('cdata',[],'colormap',[]);
     
     % Change figure background color to white
     get(0,'Factory'); set(0,'defaultfigurecolor',[1 1 1]);
@@ -172,170 +170,46 @@ popFitChange = 1;
 nScatter = 0;
 % Initialize a position plotting array
 popPos = ones(size(p.popMember(1).dVar,1),count);
-% Initialize a scatter boolean
-sctBool = 0;
 
 %% Iteration
 
 while iter <= iterLimit
     
-    % Check if current interval needs scattering
-    if (sctBool)
-        % Update the number of scatterings
-        nScatter = nScatter + 1;
-        % Inspect a rolling fitness vector for convergence
-        if nScatter <= rollKeep
-            % Write into rolling vector
-            popFitRolling(nScatter) = popFitCurrentBest(1);
+    % Normal movement
+    
+    % Move particle and evaluate fitness
+    for ii = 1:count
+        % Choose random personal and group coeff
+        rp = rand; rg = rand;
+        % Update particle velocity according to Pedersen 2010:
+        p.popMember(ii).vel = omega.*p.popMember(ii).vel + ...
+            pPhi.*rp.*(p.popMember(ii).pBestPos(:,2) - p.popMember(ii).dVar(:,2)) + ...
+            gPhi.*rg.*(p.popMember(ii).gBestPos(:,2) - p.popMember(ii).dVar(:,2));
+        % Round to nearest integer
+        p.popMember(ii).vel = round(p.popMember(ii).vel);
+        % Bound velocity
+        if p.popMember(ii).vel(p.popMember(ii).vel > vmax)
+            p.popMember(ii).vel(p.popMember(ii).vel > vmax) = vmax;
         else
-            % Trim vector
-            popFitRolling = [popFitRolling(2:end); popFitCurrentBest(1)];
-            % Find fitness change
-            popFitChange = range(popFitRolling);
-            % Check for convergence
-            if popFitChange < ctol
-                % Trim the fitness history vector
-                popFitHist = popFitHist(1:iter+1,:);
-                % Exit iteration
-                break
+            if p.popMember(ii).vel(p.popMember(ii).vel < -vmax)
+                p.popMember(ii).vel(p.popMember(ii).vel < -vmax) = -vmax;
             end
         end
-        % Graph the rolling pre-scatter fitness
-        if (pRender)
-            fig3 = figure(3);
-            cla
-            hold on
-            plot(popFitRolling);
-            drawnow limitrate
+        % Move particle to proposed position
+        p.popMember(ii).dVarProposed = p.popMember(ii).dVar(:,2) +  p.popMember(ii).vel;
+        % Bound position
+        if any(p.popMember(ii).dVarProposed > 56)
+            p.popMember(ii).dVarProposed(p.popMember(ii).dVarProposed > 56,1) = 56;
         end
-        % Random particle positions
-        for ii = 1:count
-            p.popMember(ii) = randomPosition(p.popMember(ii));
-            % Generate new element distribution
-            p.popMember(ii) = changeVar(p.popMember(ii),p.popMember(ii).dVarProposed);
-            % Only evaluate valid movements
-            if p.popMember(ii).validConnec == 1 && p.popMember(ii).validIsland == 1
-                % Assign proposed values
-                p.popMember(ii).dVar(:,2) = p.popMember(ii).dVarProposed;
-                p.popMember(ii).elDist = p.popMember(ii).elDistProposed;
-                p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
-                % Update position dependent properties
-                p.popMember(ii) = newPositionProps(p.popMember(ii));
-                % Apply the process interpreter
-                if (scan)
-                    p.popMember(ii) = pInterp(p.popMember(ii));
-                end
-                % Call the fitnessEval method
-                p.popMember(ii) = fitnessEval(p.popMember(ii));
-            else
-                % Clear proposed variables
-                clear p.popMember(ii).dVarProposed
-                clear p.popMember(ii).elDistProposed
-                clear p.popMember(ii).nodalCoordsProposed
-                % Update the fitness components for this iteration
-                p.popMember(ii).fitnessValComponents = ...
-                    [p.popMember(ii).fitnessValComponents; p.popMember(ii).fitnessValComponents(end,:)];
-            end
-            % Data structure for population position plotting
-            popPos(:,ii) = p.popMember(ii).dVar(:,2);
+        if any(p.popMember(ii).dVarProposed < 1)
+            p.popMember(ii).dVarProposed(p.popMember(ii).dVarProposed < 1,1) = 1;
         end
-        
-        % Find gBestFit and gWorstFit
-        bestPar = find([p.popMember.fitnessVal] == min([p.popMember.fitnessVal]));
-        worstPar = find([p.popMember.fitnessVal] == max([p.popMember.fitnessVal])); %#ok<NASGU>
-        
-        % Update particle gBest and pBest
-        for ii = 1:count
-            % Check for new gBest
-            if p.popMember(bestPar(1)).fitnessVal < p.popMember(ii).gBestFit
-                % Set gBestFit
-                p.popMember(ii).gBestFit = p.popMember(bestPar(1)).fitnessVal;
-                % Set gBestPos
-                p.popMember(ii).gBestPos = p.popMember(bestPar(1)).dVar;
-            end
-            % Check for new pBest
-            if p.popMember(ii).fitnessVal < p.popMember(ii).pBestFit
-                % Set pBestPos
-                p.popMember(ii).pBestPos = p.popMember(ii).dVar;
-                % Set pBestFit
-                p.popMember(ii).pBestFit = p.popMember(ii).fitnessVal;
-            end
-        end
-        
-        % Reset scatter boolean
-        sctBool = 0;
-        
-    else % Normal movement
-        
-        % Move particle and evaluate fitness
-        for ii = 1:count
-            % Choose random personal and group coeff
-            rp = rand; rg = rand;
-            % Update particle velocity according to Pedersen 2010:
-            p.popMember(ii).vel = omega.*p.popMember(ii).vel + ...
-                pPhi.*rp.*(p.popMember(ii).pBestPos(:,2) - p.popMember(ii).dVar(:,2)) + ...
-                gPhi.*rg.*(p.popMember(ii).gBestPos(:,2) - p.popMember(ii).dVar(:,2));
-            % Round to nearest integer
-            p.popMember(ii).vel = round(p.popMember(ii).vel);
-            % Bound velocity
-            if p.popMember(ii).vel(p.popMember(ii).vel > vmax)
-                p.popMember(ii).vel(p.popMember(ii).vel > vmax) = vmax;
-            else
-                if p.popMember(ii).vel(p.popMember(ii).vel < -vmax)
-                    p.popMember(ii).vel(p.popMember(ii).vel < -vmax) = -vmax;
-                end
-            end
-            % Move particle to proposed position
-            p.popMember(ii).dVarProposed = p.popMember(ii).dVar(:,2) +  p.popMember(ii).vel;
-            % Bound position
-            if any(p.popMember(ii).dVarProposed > 56)
-                p.popMember(ii).dVarProposed(p.popMember(ii).dVarProposed > 56,1) = 56;
-            end
-            
-            if any(p.popMember(ii).dVarProposed < 1)
-                p.popMember(ii).dVarProposed(p.popMember(ii).dVarProposed < 1,1) = 1;
-            end
-            % Generate new element distribution
-            p.popMember(ii) = changeVar(p.popMember(ii),p.popMember(ii).dVarProposed);
-            % Only evaluate valid movements
-            if p.popMember(ii).validConnec == 1 && p.popMember(ii).validIsland == 1
-                % Assign proposed values
-                p.popMember(ii).dVar(:,2) = p.popMember(ii).dVarProposed;
-                p.popMember(ii).elDist = p.popMember(ii).elDistProposed;
-                p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
-                % Update position dependent properties
-                p.popMember(ii) = newPositionProps(p.popMember(ii));
-                % Apply the process interpreter
-                if (scan)
-                    p.popMember(ii) = pInterp(p.popMember(ii));
-                end
-                % Call the fitnessEval method
-                p.popMember(ii) = fitnessEval(p.popMember(ii));
-            else
-                % Clear proposed variables
-                clear p.popMember(ii).dVarProposed
-                clear p.popMember(ii).elDistProposed
-                clear p.popMember(ii).nodalCoordsProposed
-                % Update the fitness components for this iteration
-                p.popMember(ii).fitnessValComponents = ...
-                    [p.popMember(ii).fitnessValComponents; p.popMember(ii).fitnessValComponents(end,:)];
-            end
-            % Data structure for population position plotting
-            popPos(:,ii) = p.popMember(ii).dVar(:,2);
-            
-            % Check if next iteration should be scattered
-            if iter > sTrig
-                % If the current and global best nad been equal too long
-                if popFitHist(iter-sTrig:iter,1) == popFitHist(iter-sTrig:iter,2)
-                    sctBool = 1;
-                else
-                    % If the current and global best aren't converging
-                    if range(popFitHist(iter-sTrig:iter,1)) < ctol && range(popFitHist(iter-sTrig:iter,2)) < ctol
-                        sctBool = 1;
-                    end
-                end
-            end
-        end
+        % Assign proposed values
+        p.popMember(ii).dVar(:,2) = p.popMember(ii).dVarProposed;
+        % Call the fitnessEval method
+        p.popMember(ii) = fitnessEval(p.popMember(ii));
+        % Data structure for population position plotting
+        popPos(:,ii) = p.popMember(ii).dVar(:,2);
     end
     
     % Find gBestFit and gWorstFit
@@ -370,17 +244,12 @@ while iter <= iterLimit
     
     % Render a selected particle
     if (pRender)
-        % Render the shape of the best particle
-        fig1 = figure(1);
-        cla
-        Plot2DGeometryUndeformed(p.popMember(bestPar(1)).elDist,p.popMember(bestPar(1)).nodalCoords,0,['Particle ' num2str(bestPar)]);
-        drawnow limitrate
         
         % Graph the population fitness
         fig2 = figure(2);
         cla
         plot(1:1:iter,popFitHist(1:iter,1),1:1:iter,popFitHist(1:iter,2),1:1:iter,popFitHist(1:iter,3));
-        ylim([0 2]);
+        ylim([-10 10]);
         title(['Population: Objective Function Value, Iteration ' num2str(iter)]);
         legend('Global Best','Current Best','Current Mean');
         xlabel('Iteration'); ylabel('Objective Value');
@@ -390,51 +259,23 @@ while iter <= iterLimit
         fig4 = figure(4);
         cla
         hold on
-        [nn,~] = meshgrid(1:1:size(p.popMember(1).dVar,1),1:1:count);
-        nn = reshape(nn',[],1); popPos = reshape(popPos,[],1);
-        if (sctBool)
-            scatter(nn,popPos,'r.');
-        else
-            scatter(nn,popPos,'k.');
-        end
-        ylim([1 56]); xlim([0 size(p.popMember(1).vel,1)]);
+        contour(peaks(56));
+        scatter(popPos(2,:),popPos(1,:),150,'k.');
+        pbaspect([1 1 1]);
         title(['Population Positions, Iteration ' num2str(iter)]);
         xlabel('Unit Cell Number'); ylabel('Unit Cell Value');
         drawnow limitrate; clear popPos;
         
-        % Plotting data structures for patch function
-        nUnCell = (nndx-1)*(nndy-1); elPot = elementPotential(nndx,nndy); grd = nodalGrid(nndx,nndy,scale);
-        x = grd(elPot(:,2:5),2); x = reshape(x,nUnCell,4); x = x'; x(3:4,:) = circshift(x(3:4,:),1,1);
-        y = grd(elPot(:,2:5),3); y = reshape(y,nUnCell,4); y = y';
-        % Remap unit cell values to "density" values
-        dens = p.popMember(bestPar(1)).dVar(:,2);
-        dens(dens == 1) = 0; dens(dens > 1 & dens <= 7) = 1; dens(dens > 7 & dens <= 22) = 2;
-        dens(dens > 22 & dens <= 42) = 3; dens(dens > 42 & dens <= 49) = 4;
-        dens(dens > 49 & dens <= 55) = 5; dens(dens == 56) = 6;
-        
-        % Show the unit cell value of the best particle
-        fig5 = figure(5);
-        cla
-        hold on
-        patch(x,y,dens);
-        colormap(flipud(gray(7)));
-        xlim([0 (nndx-1)*scale]); ylim([0 (nndy-1)*scale]); pbaspect([nndx nndy 1]);
-        set(gca,'CLim',[0 7]); c = colorbar('Ticks',[0 1 2 3 4 5 6]); c.Label.String = 'Number of Elements';
-        title(['Particle ' num2str(bestPar(1)) ', Element Count, Iteration ' num2str(iter)]);
-        drawnow limitrate
-        
         % Write into movie structure
         fitMOV(iter) = getframe(fig2);
-        parMOV(iter) = getframe(fig1);
         posMOV(iter) = getframe(fig4);
-        vebMOV(iter) = getframe(fig5);
     end
     
     % Terminal write outs
     % Write out iteration count
     fprintf('Iteration %6u of %6u\n',iter,iterLimit);
     % Write out population fitness statistics
-    fprintf('\tGlobal Best fitness:\t\t\t%.5f\tSE-----\tVolPen-\tVolTar-\tVol----\n',popFitGlobalBest);
+    fprintf('\tGlobal Best fitness:\t\t\t%.5f\tDV1----\tDV2----\t-------\t-------\n',popFitGlobalBest);
     fprintf('\tCurrent Best fitness:\t\t\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\n',popFitCurrentBest(1:5));
     fprintf('\tPopulation fitness mean:\t\t%.5f\t-------\t-------\t-------\t-------\n',popFitMean);
     fprintf('\tWorst fitness:\t\t\t\t\t%.5f\t-------\t-------\t-------\t-------\n',popFitWorst);
@@ -449,17 +290,8 @@ end
 for ii = 1:count
     % Set current position to personal best
     p.popMember(ii).dVarProposed = p.popMember(ii).pBestPos(:,2);
-    p.popMember(ii) = changeVar(p.popMember(ii),p.popMember(ii).dVarProposed);
     % Assign best position values
     p.popMember(ii).dVar(:,2) = p.popMember(ii).dVarProposed;
-    p.popMember(ii).elDist = p.popMember(ii).elDistProposed;
-    p.popMember(ii).nodalCoords = p.popMember(ii).nodalCoordsProposed;
-    % Calculate new position-dependent properties
-    p.popMember(ii) = newPositionProps(p.popMember(ii));
-    % Apply the process interpreter
-    if (scan)
-        p.popMember(ii) = pInterp(p.popMember(ii));
-    end
     % Evaluate fitness
     p.popMember(ii) = fitnessEval(p.popMember(ii));
 end
@@ -472,25 +304,17 @@ save([fis,'_solution'],'-v7.3','p','popFitHist','iter','omega','pPhi','gPhi');
 % Write movis to gif
 if (pRender)
     fitGifName = [fis '_fitnessAnimated.gif']; % Specify the output file name
-    parGifName = [fis '_bestParAnimated.gif'];
     posGifName = [fis '_populationPositionAnimated.gif'];
-    vebGifName = [fis '_velocityBestParticleAnimated.gif'];
     for idx = 1:(iter-1)
         disp(['Saving GIFs Frame ' num2str(idx)]);
         [aFIT,mapFIT] = rgb2ind(fitMOV(idx).cdata,256);
-        [aPAR,mapPAR] = rgb2ind(parMOV(idx).cdata,256);
         [aPOS,mapPOS] = rgb2ind(posMOV(idx).cdata,256);
-        [aVEB,mapVEB] = rgb2ind(vebMOV(idx).cdata,256);
         if idx == 1
             imwrite(aFIT,mapFIT,fitGifName,'gif','LoopCount',Inf,'DelayTime',1);
-            imwrite(aPAR,mapPAR,parGifName,'gif','LoopCount',Inf,'DelayTime',1);
             imwrite(aPOS,mapPOS,posGifName,'gif','LoopCount',Inf,'DelayTime',1);
-            imwrite(aVEB,mapVEB,vebGifName,'gif','LoopCount',Inf,'DelayTime',1);
         else
             imwrite(aFIT,mapFIT,fitGifName,'gif','WriteMode','append','DelayTime',0.2);
-            imwrite(aPAR,mapPAR,parGifName,'gif','WriteMode','append','DelayTime',0.2);
             imwrite(aPOS,mapPOS,posGifName,'gif','WriteMode','append','DelayTime',0.2);
-            imwrite(aVEB,mapVEB,vebGifName,'gif','WriteMode','append','DelayTime',0.2);
         end
     end
 end

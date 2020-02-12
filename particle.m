@@ -55,6 +55,7 @@ classdef particle
         numFreeDOF
         numNodes
         imposedLoad
+        peaksVal
     end
     
     % Simulated Properties
@@ -119,34 +120,12 @@ classdef particle
                     obj.eldof = nne * obj.nodof; % Number of degrees of freedom per element
                     
                     % Write the scan direction into a class property
-                    obj.scanDir = scanDir;
-                    
-                % Ground Structure Calculation
-                    % This section calculates the strain energy of the
-                    % "fully dense", or ground structure condition for
-                    % normalization of strain energy during optimization
-                    obj.gsStrainEnergy = groundStructure(obj);
-                    
+                    obj.scanDir = scanDir; 
                     
                 % Initialize Particle Position
-                    % This section generates position-dependent properties that are allowed to
-                    % change after initialization
-                    % Generate an element distribution from a random selection
-                    % of design values for each unit cell
-                    [obj.elDist,obj.randVar,~,obj.nodalCoords] = dvarPlacement(obj.nndx,obj.nndy,obj.scale,obj.type);
-                    % Assign the random dVar distribution to the property
-                    % that will be changed during optimization
-                    obj.dVar = obj.randVar;
+                    obj.dVar = [1 datasample(1:56,1); 2 datasample(1:56,1)];
                     % Record the initial position
-                    obj.initVar = obj.randVar;
-                    % Count number of elements
-                    obj.nel = size(obj.elDist,1);
-                    % Build the element property matrix
-                    obj.prop = buildProps(obj.nel,E,A,I);
-                    % Modify element stiffness
-                    if obj.scan == 1
-                        obj.prop = pInterp(obj.prop,obj.elDist,obj.nodalCoords,scanDir,maxRed);
-                    end
+                    obj.initVar = obj.dVar;
             end
         end
     end
@@ -365,29 +344,13 @@ classdef particle
         
         % Evaluate the particle fitness
         function obj = fitnessEval(obj)
-           % Perform the FE simulation
-           obj = simulate(obj);
-           
-           % Note: This formulation of particle fitness is subject to
-           % change and not necessarily the best formulation
-               
-               % FInd normalized strain energy and volume fraction
-               strainEnergy = (1 - obj.gsStrainEnergy/(obj.delta'*obj.KK*obj.delta));
-               volumeFraction = obj.nel/(size(obj.elPot,1)*6);
-               
-               % Volume fraction constraint
-               vcons = 0.5;
-               
-               % Penalty coefficient
-               a = 1;
-
-               % Volume Fraction Penalization
-               penalty = (exp(abs(volumeFraction-vcons))-1);
-               obj.fitnessVal = strainEnergy + penalty;
-               
-               % Append to a history matrix
-               obj.fitnessValComponents = [obj.fitnessValComponents; ...
-                   obj.fitnessVal strainEnergy penalty vcons volumeFraction a nan nan];
+            % Create a peaks function mesh
+            n = peaks(56);
+            obj.fitnessVal = n(obj.dVar(1,2),obj.dVar(2,2));
+            
+            % Append to a history matrix
+            obj.fitnessValComponents = [obj.fitnessValComponents; ...
+                obj.fitnessVal obj.dVar(1,2) obj.dVar(2,2) nan nan nan nan nan];
         end
         
         % Memorize current positional state
