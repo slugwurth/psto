@@ -258,8 +258,19 @@ while iter <= iterLimit
         % Show the positions of the population
         fig4 = figure(4);
         cla
-        hold on
-        contour(peaks(56));
+        hold on     
+        % Cross-in-Tray
+        n = zeros(56);
+            for ii = 1:56
+                for jj = 1:56
+                    aa = (ii - 28);
+                    bb = (jj - 28);
+                    fact1 = sin(aa)*sin(bb);
+                    fact2 = exp(abs(100 - sqrt(aa^2+bb^2)/pi));
+                    n(ii,jj) = -0.0001 * (abs(fact1*fact2)+1)^0.1;
+                end
+            end
+        contour(n);
         scatter(popPos(2,:),popPos(1,:),150,'k.');
         pbaspect([1 1 1]);
         title(['Population Positions, Iteration ' num2str(iter)]);
