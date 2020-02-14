@@ -14,7 +14,7 @@ fid = '20200124-1510_pop';% name of the saved .mat population
 
 if gen == 1
     % Generate a population
-    count = 100;% the population size
+    count = 160;% the population size
     
     % Input Data
     % General parameters; Design space
@@ -25,7 +25,7 @@ if gen == 1
     % Boundary conditions
     % Choose BC type
     type = 1;   % 1 for MBB
-    % 2 for Cantilever midplane tip-load
+                % 2 for Cantilever midplane tip-load
     
     % Set point load
     pload = 1000;% unitless
@@ -39,41 +39,32 @@ if gen == 1
     scanDir = [0 1];% [x y]
     scan = 0;% logical yes/no
     maxRed = 0.2;% maximum percent reduction
-    
-    % File saving
-    fis = '3x2_popScanY';% filename
-    fis = [char(datetime('now','Format','yyyyMMdd''-''HHmm')),'_',fis];% append date and time
 end
 
-if gen == 0
-    % Process interpretation
-    % Scan direction
-    scanDir = [0 1];% [x y]
-    scan = 0;% logical yes/no
-    maxRed = 0.1;% maximum percent reduction
-    
-    % Load file
-    load(fid)
-    count = p.count;
-    % Change filename
-    fis = fid;
-    % Check for scanning
-    if (scan)
-        % Append suffix to filename
-        if scanDir(1) == 1
-            fis = [fis '_scanX'];
-        else
-            if scanDir(2) == 1
-                fis = [fis '_scanY'];
-            end
-        end
-        % Apply process interpreter flag and direction
-        for ii = 1:count
-            p.popMember(ii).scan = 1;
-            p.popMember(ii).scanDir = scanDir;
-            p.popMember(ii).maxRed = maxRed;
-        end
+%% File Naming
+% Automatically build filenames based on input parameters
+
+% Date and time
+fis = char(datetime('now','Format','yyyyMMdd''-''HHmm'));
+% Grid Size
+fis = [fis,'_',num2str(nndx),'x',num2str(nndy),'grid_'];
+% Load type
+if type == 1
+    fis = [fis,'mbb'];
+else 
+    if type == 2
+        fis = [fis,'canti'];
     end
+end
+% Scan
+if scan
+   if scanDir(1) == 1
+       fis = [fis,'ScanX_'];
+   else
+       if scanDir(2) == 1
+           fis = [fis,'ScanY_'];
+       end
+   end
 end
 
 %% Optimization Parameters
