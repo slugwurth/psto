@@ -82,7 +82,12 @@ classdef particle
         pBestPos
         gBestPos
         vel
-        memory = struct('pos',[],'fit',[],'pbf',[],'pbp',[])
+        strainEnergy
+        volumeFraction
+        vcons
+        penalty
+        penCoeff
+        memory = struct('pos',[],'fit',[],'fitComp',[])
     end
     
     % Particle initialization
@@ -372,31 +377,44 @@ classdef particle
            % change and not necessarily the best formulation
                
                % FInd normalized strain energy and volume fraction
-               strainEnergy = (1 - obj.gsStrainEnergy/(obj.delta'*obj.KK*obj.delta));
-               volumeFraction = obj.nel/(size(obj.elPot,1)*6);
+               obj.strainEnergy = (1 - obj.gsStrainEnergy/(obj.delta'*obj.KK*obj.delta));
+               obj.volumeFraction = obj.nel/(size(obj.elPot,1)*6);
                
                % Volume fraction constraint
-               vcons = 0.5;
+               obj.vcons = 0.5;
                
                % Penalty coefficient
-               a = 1;
+               obj.penCoeff = 1;
 
                % Volume Fraction Penalization
-               penalty = (exp(abs(volumeFraction-vcons))-1);
-               obj.fitnessVal = strainEnergy + penalty;
+               obj.penalty = (exp(abs(obj.volumeFraction-obj.vcons))-1);
+               obj.fitnessVal = obj.strainEnergy + obj.penalty;
                
-               % Append to a history matrix
-               obj.fitnessValComponents = [obj.fitnessValComponents; ...
-                   obj.fitnessVal strainEnergy penalty vcons volumeFraction a nan nan];
+               % Update fitness value components
+               obj.fitnessValComponents = ...
+                   [obj.fitnessVal obj.strainEnergy obj.penalty obj.vcons obj.volumeFraction obj.penCoeff];
         end
         
         % Memorize current positional state
-        function obj = memorize(obj)
+        function obj = memorize(obj,varargin)
+            % Can be self-referencing or accept position and fitness values
             
-            % Append positional information
-            obj.memory.pos = [obj.memory.pos obj.dVar(:,2)];
-            % Append fitness value
-            obj.memory.fit = [obj.memory.fit obj.fitnessVal];
+            if size(varargin) == 0
+                % Append positional information
+                obj.memory.pos = [obj.memory.pos obj.dVar(:,2)];
+                % Append fitness value
+                obj.memory.fit = [obj.memory.fit obj.fitnessVal];
+                % Append fitness components
+                obj.memory.fitComp = [obj.memory.fitComp; ...
+                    obj.fitnessVal obj.strainEnergy obj.penalty obj.vcons obj.volumeFraction obj.penCoeff];
+            else
+                % Append positional information
+                obj.memory.pos = [obj.memory.pos varargin(1)];
+                % Append fitness components
+                obj.memory.fitComp = [obj.memory.fitComp; varargin(2)];
+            end
+            
+
         end
     end
     
