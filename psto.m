@@ -245,14 +245,15 @@ while iter <= iterLimit
                 p.popMember(ii) = newPositionProps(p.popMember(ii));
                 % Call the fitnessEval method
                 p.popMember(ii) = fitnessEval(p.popMember(ii));
+                                % Call the memorize method
+                p.popMember(ii) = memorize(p.popMember(ii));
             else
                 % Clear proposed variables
                 clear p.popMember(ii).dVarProposed
                 clear p.popMember(ii).elDistProposed
                 clear p.popMember(ii).nodalCoordsProposed
-                % Update the fitness components for this iteration
-                p.popMember(ii).fitnessValComponents = ...
-                    [p.popMember(ii).fitnessValComponents; p.popMember(ii).fitnessValComponents(end,:)];
+                % Call the memorize method
+                p.popMember(ii) = memorize(p.popMember(ii));
             end
             % Data structure for population position plotting
             popPos(:,ii) = p.popMember(ii).dVar(:,2);
@@ -325,14 +326,15 @@ while iter <= iterLimit
                 p.popMember(ii) = newPositionProps(p.popMember(ii));
                 % Call the fitnessEval method
                 p.popMember(ii) = fitnessEval(p.popMember(ii));
+                % Call the memorize method
+                p.popMember(ii) = memorize(p.popMember(ii));
             else
                 % Clear proposed variables
                 clear p.popMember(ii).dVarProposed
                 clear p.popMember(ii).elDistProposed
                 clear p.popMember(ii).nodalCoordsProposed
-                % Update the fitness components for this iteration
-                p.popMember(ii).fitnessValComponents = ...
-                    [p.popMember(ii).fitnessValComponents; p.popMember(ii).fitnessValComponents(end,:)];
+                % Call the memorize method
+                p.popMember(ii) = memorize(p.popMember(ii));
             end
             % Data structure for population position plotting
             popPos(:,ii) = p.popMember(ii).dVar(:,2);
@@ -376,7 +378,7 @@ while iter <= iterLimit
     
     % Record to terminal variables
     popFitMean = mean([p.popMember.fitnessVal]);
-    popFitCurrentBest = p.popMember(bestPar(1)).fitnessValComponents(iter+1,:);
+    popFitCurrentBest = p.popMember(bestPar(1)).memory.fitComp(iter,:);
     popFitGlobalBest = p.popMember(1).gBestFit;
     popFitWorst = p.popMember(worstPar(1)).fitnessVal;
     % Append population fitness statistics to history vector
