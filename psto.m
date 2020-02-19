@@ -18,8 +18,8 @@ if gen == 1
     
     % Input Data
     % General parameters; Design space
-    nndx = 3; % Number of nodes in x
-    nndy = 2; % Number of nodes in y
+    nndx = 13; % Number of nodes in x
+    nndy = 5; % Number of nodes in y
     scale = 5; % Scaling factor for element size
     
     % Boundary conditions
@@ -107,18 +107,18 @@ ctol = 1e-3;
 rollKeep = 7;
 
 % Scattering trigger length
-sTrig = 10;
+sTrig = 5;
 
 % Iteration limit
 iterLimit = 10000;
 
 % Velocity maximum
-vmax = 10;
+vmax = 55;
 
 % Velocity Update Tuning
-omega = 0.4;
-pPhi = 0.2;
-gPhi = 0.6;
+omega = 0.5;
+pPhi = -0.2;
+gPhi = 0.3;
 
 %% Rendering
 % Render best particle, fitness, and velocity values
@@ -245,13 +245,9 @@ while iter <= iterLimit
                 p.popMember(ii) = newPositionProps(p.popMember(ii));
                 % Call the fitnessEval method
                 p.popMember(ii) = fitnessEval(p.popMember(ii));
-                                % Call the memorize method
+                % Call the memorize method
                 p.popMember(ii) = memorize(p.popMember(ii));
             else
-                % Clear proposed variables
-                clear p.popMember(ii).dVarProposed
-                clear p.popMember(ii).elDistProposed
-                clear p.popMember(ii).nodalCoordsProposed
                 % Call the memorize method
                 p.popMember(ii) = memorize(p.popMember(ii));
             end
@@ -292,8 +288,8 @@ while iter <= iterLimit
             rp = rand; rg = rand;
             % Update particle velocity according to Pedersen 2010:
             p.popMember(ii).vel = omega.*p.popMember(ii).vel + ...
-                pPhi.*rp.*(p.popMember(ii).pBestPos(:,2) - p.popMember(ii).dVar(:,2)) + ...
-                gPhi.*rg.*(p.popMember(ii).gBestPos(:,2) - p.popMember(ii).dVar(:,2));
+                pPhi.*rp.*(p.popMember(ii).pBestPos(:,2) - p.popMember(ii).dVarProposed) + ...
+                gPhi.*rg.*(p.popMember(ii).gBestPos(:,2) - p.popMember(ii).dVarProposed);
             % Round to nearest integer
             p.popMember(ii).vel = round(p.popMember(ii).vel);
             % Bound velocity
@@ -305,7 +301,7 @@ while iter <= iterLimit
                 end
             end
             % Move particle to proposed position
-            p.popMember(ii).dVarProposed = p.popMember(ii).dVar(:,2) +  p.popMember(ii).vel;
+            p.popMember(ii).dVarProposed = p.popMember(ii).dVarProposed +  p.popMember(ii).vel;
             % Bound position
             if any(p.popMember(ii).dVarProposed > 56)
                 p.popMember(ii).dVarProposed(p.popMember(ii).dVarProposed > 56,1) = 56;
@@ -329,10 +325,6 @@ while iter <= iterLimit
                 % Call the memorize method
                 p.popMember(ii) = memorize(p.popMember(ii));
             else
-                % Clear proposed variables
-                clear p.popMember(ii).dVarProposed
-                clear p.popMember(ii).elDistProposed
-                clear p.popMember(ii).nodalCoordsProposed
                 % Call the memorize method
                 p.popMember(ii) = memorize(p.popMember(ii));
             end
@@ -424,19 +416,17 @@ while iter <= iterLimit
         y = grd(elPot(:,2:5),3); y = reshape(y,nUnCell,4); y = y';
         % Remap unit cell values to "density" values
         dens = p.popMember(bestPar(1)).dVar(:,2);
-        dens(dens == 1) = 0; dens(dens > 1 & dens <= 7) = 1; dens(dens > 7 & dens <= 22) = 2;
-        dens(dens > 22 & dens <= 42) = 3; dens(dens > 42 & dens <= 49) = 4;
-        dens(dens > 49 & dens <= 55) = 5; dens(dens == 56) = 6;
+        dens(dens <= 28) = 0; dens(dens > 28) = 1; 
         
         % Show the unit cell value of the best particle
         fig5 = figure(5);
         cla
         hold on
         patch(x,y,dens);
-        colormap(flipud(gray(7)));
+        colormap(flipud(gray(2)));
         xlim([0 (nndx-1)*scale]); ylim([0 (nndy-1)*scale]); pbaspect([nndx nndy 1]);
-        set(gca,'CLim',[0 7]); c = colorbar('Ticks',[0 1 2 3 4 5 6]); c.Label.String = 'Number of Elements';
-        title(['Particle ' num2str(bestPar(1)) ', Element Count, Iteration ' num2str(iter)]);
+        set(gca,'CLim',[0 2]); c = colorbar('Ticks',[0 1]); c.Label.String = 'Material';
+        title(['Particle ' num2str(bestPar(1)) ', Material Placement, Iteration ' num2str(iter)]);
         drawnow limitrate
         
         % Write into movie structure

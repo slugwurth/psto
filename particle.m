@@ -141,7 +141,8 @@ classdef particle
                     [obj.elDist,obj.randVar,~,obj.nodalCoords] = dvarPlacement(obj.nndx,obj.nndy,obj.scale,obj.type);
                     % Assign the random dVar distribution to the property
                     % that will be changed during optimization
-                    obj.dVar = obj.randVar;
+                    obj.dVar = obj.randVar; 
+                    obj.dVarProposed = obj.dVar(:,2);
                     % Record the initial position
                     obj.initVar = obj.randVar;
                     % Count number of elements
@@ -384,7 +385,7 @@ classdef particle
                obj.vcons = 0.5;
                
                % Penalty coefficient
-               obj.penCoeff = 1;
+               obj.penCoeff = 5;
 
                % Volume Fraction Penalization
                obj.penalty = (exp(abs(obj.volumeFraction-obj.vcons))-1);
