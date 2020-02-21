@@ -10,6 +10,6 @@ function [uniPot] = unitCellPotential()
 %                   
 
 % Create the unit cell potential vector
-uniPot = 1:1:56;
+uniPot = [1 56];
 
 end
